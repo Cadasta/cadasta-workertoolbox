@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import sys
+import subprocess
+import unittest
+
+
+class color:
+    PURPLE = '\033[95m'
+    CYAN = '\033[96m'
+    DARKCYAN = '\033[36m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END = '\033[0m'
+
+
+def heading(str):
+    print('\n' + color.BOLD + str + color.END)
+    sys.stdout.flush()
+
+
+def err(str):
+    print(color.RED + str + color.END)
+
+
+def success(str):
+    print(color.GREEN + str + color.END)
+
+
+def is_set(flag):
+    try:
+        sys.argv.remove(flag)
+    except ValueError:
+        return False
+    else:
+        return True
+
+
+def run_tests(args):
+    suite = unittest.TestLoader().discover('./tests')
+    results = unittest.TextTestRunner().run(suite)
+    if results.errors:
+        err("Tests failed.")
+        sys.exit(1)
+    success("Tests passed.")
+
+
+def run_coverage(args):
+    """
+    Run tests with coverage tooling.
+    """
+    # Run tests
+    heading('TESTS')
+    cmd = 'coverage run ' + ' '.join(args) + ' --only-tests'
+    ret = subprocess.call(cmd, shell=True)
+    if ret:
+        return ret
+
+    # Run coverage
+    heading('COVERAGE REPORT')
+    proc = subprocess.Popen(
+        'coverage report', shell=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = [out.decode('utf-8') for out in proc.communicate()]
+    exitcode = proc.returncode
+    print(stdout)
+    if exitcode:
+        err("Coverage failed to run.")
+        if stderr:
+            err(stderr)
+        return 1
+
+    # Analyze coverage report
+    coverage = stdout.split()[-1]
+    if coverage == '100%':
+        success("Coverage at 100%.")
+        return 0
+    else:
+        err("Failure, coverage not at 100% (got {})".format(coverage))
+        return 1
+
+
+def run_flake8():
+    heading('FLAKE8')
+    ret = subprocess.call("flake8 rest_framework_tmp_scoped_token", shell=True)
+    if not ret:
+        success("Flake8 found no issues.")
+    return ret
+
+
+if __name__ == "__main__":
+    if is_set('--only-flake8'):
+        sys.exit(run_flake8())
+    if is_set('--only-tests'):
+        sys.exit(run_tests(sys.argv))
+    else:
+        sys.exit(run_coverage(sys.argv) + run_flake8())
