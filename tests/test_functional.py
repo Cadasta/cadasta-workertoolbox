@@ -33,7 +33,7 @@ class TestConfigFunctional(unittest.TestCase):
             exchange, self.q_name, self.app.conf.task_default_queue)
         self.assertEqual(len(queues), 2)
         self.assertTrue(self.q_name in queues)
-        self.assertTrue(self.conf._PLATFORM_QUEUE_NAME in queues)
+        self.assertTrue(self.conf.PLATFORM_QUEUE_NAME in queues)
 
     def test_celery_exchange_routing(self):
         """
@@ -48,7 +48,7 @@ class TestConfigFunctional(unittest.TestCase):
 
         self.assertEqual(len(queues), 2)
         self.assertTrue('celery' in queues)
-        self.assertTrue(self.conf._PLATFORM_QUEUE_NAME in queues)
+        self.assertTrue(self.conf.PLATFORM_QUEUE_NAME in queues)
 
     def test_celery_task_routing(self):
         """ Ensure celery tasks route to celery queue and platform queue """
@@ -65,4 +65,4 @@ class TestConfigFunctional(unittest.TestCase):
             default=self.app.conf.task_default_queue)
         self.assertEqual(len(queues), 2)
         self.assertTrue('celery' in queues)
-        self.assertTrue(self.conf._PLATFORM_QUEUE_NAME in queues)
+        self.assertTrue(self.conf.PLATFORM_QUEUE_NAME in queues)

@@ -18,13 +18,13 @@ class Config:
     worker_prefetch_multiplier = 0  # https://github.com/celery/celery/issues/3712  # noqa
 
     # Results
-    _RESULT_DB_USER = os.environ.get('RESULT_DB_USER', 'cadasta')
-    _RESULT_DB_PASS = os.environ.get('RESULT_DB_PASS', 'cadasta')
-    _RESULT_DB_HOST = os.environ.get('RESULT_DB_HOST', 'localhost')
-    _RESULT_DB_NAME = os.environ.get('RESULT_DB_NAME', 'cadasta')
-    _result_backend_tmplt = (
-        'db+postgresql://{0._RESULT_DB_USER}:{0._RESULT_DB_PASS}@'
-        '{0._RESULT_DB_HOST}/{0._RESULT_DB_NAME}')
+    RESULT_DB_USER = os.environ.get('RESULT_DB_USER', 'cadasta')
+    RESULT_DB_PASS = os.environ.get('RESULT_DB_PASS', 'cadasta')
+    RESULT_DB_HOST = os.environ.get('RESULT_DB_HOST', 'localhost')
+    RESULT_DB_NAME = os.environ.get('RESULT_DB_NAME', 'cadasta')
+    result_backend = (
+        'db+postgresql://{0.RESULT_DB_USER}:{0.RESULT_DB_PASS}@'
+        '{0.RESULT_DB_HOST}/{0.RESULT_DB_NAME}')
     task_track_started = True
 
     # Exchanges
@@ -35,29 +35,33 @@ class Config:
         task_default_exchange, task_default_exchange_type)
 
     # Queues
-    _PLATFORM_QUEUE_NAME = 'platform.fifo'
+    PLATFORM_QUEUE_NAME = 'platform.fifo'
 
     def __init__(self, queues, imports=('app.tasks',), **kwargs):
         """
         Object to manage Celery application configuration.
         """
-        self.queues = queues
+        self.QUEUES = queues
         self.imports = imports
 
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-        if not hasattr(self, 'result_backend'):
-            self.result_backend = self._result_backend_tmplt.format(self)
+        try:
+            self.result_backend = self.result_backend.format(self)
+        except ValueError:
+            raise ValueError(
+                "Unable to render 'result_backend' value: %r" %
+                self.result_backend)
 
         if not hasattr(self, 'task_queues'):
             self.task_queues = self._generate_queues(
-                self.queues, self._default_exchange_obj,
-                self._PLATFORM_QUEUE_NAME)
+                self.QUEUES, self._default_exchange_obj,
+                self.PLATFORM_QUEUE_NAME)
 
         if not hasattr(self, 'task_routes'):
             self.task_routes = self._generate_routes(
-                self.queues, self._default_exchange_obj)
+                self.QUEUES, self._default_exchange_obj)
 
     def __repr__(self):
         attr_str = pprint.pformat(self.to_dict())
@@ -67,7 +71,8 @@ class Config:
         return {
             k: getattr(self, k)
             for k in dir(self)
-            if not k.startswith('_') and not callable(getattr(self, k))
+            if (k.islower() and not k.startswith('_') and
+                not callable(getattr(self, k)))
         }
 
     @staticmethod
