@@ -1,1 +1,5 @@
 __version__ = '0.0.1'
+__license__ = 'GNU Affero General Public License v3.0'
+__description__ = 'Cadasta Worker Toolbox'
+__author__ = 'Anthony Lukach'
+__email__ = 'alukach@cadasta.org'

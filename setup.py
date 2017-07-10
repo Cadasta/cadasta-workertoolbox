@@ -1,58 +1,44 @@
+import codecs
 import os
 import re
-import sys
 from setuptools import setup, find_packages, Command
 
 
-def get_version(package):
-    """
-    Return package version as listed in `__version__` in `init.py`.
-    """
-    init_py = open(os.path.join(package, '__init__.py')).read()
-    return re.search("^__version__ = ['\"]([^'\"]+)['\"]",
-                     init_py, re.MULTILINE).group(1)
+###
+
+NAME = 'cadasta-workertoolbox'
+META_PATH = os.path.join("cadasta", "workertoolbox", "__init__.py")
+PACKAGES = find_packages()
+CLASSIFIERS = [
+    "Development Status :: 3 - Alpha",
+]
+###
 
 
-def get_pkg_from_git_url(link):
+def read(*parts):
     """
-    Given a pip-compatible git-requirement, output a setup.py-compatible
-    install requirement.
-
-    >>> get_pkg_from_git_url('git+https://github.com/user/pkg.git@branch')
-    'pkg'
+    Build an absolute path from *parts* and and return the contents of the
+    resulting file.  Assume UTF-8 encoding.
     """
-    try:
-        link = link.split('#')[0].strip()
-        end = link.split('/')[-1]
-        pkg, version = end.split('@', 1)
-        pkg = pkg.split('.git')[0]
-        return pkg
-    except:
-        sys.stderr.write("Failed on link {!r}\n".format(link))
-        raise
+    cur_dir = os.path.abspath(os.path.dirname(__file__))
+    with codecs.open(os.path.join(cur_dir, *parts), "rb", "utf-8") as f:
+        return f.read()
 
 
-def get_dependency_from_git_url(link):
-    """
-    Given a pip-compatible git-requirement, output a setup.py-compatible
-    dependency link.
+META_FILE = read(META_PATH)
 
-    >>> get_dependency_from_git_url('git+https://github.com/user/pkg.git@branch')
-    'https://github.com/user/pkg/tarball/branch#egg=pkg'
+
+def find_meta(meta):
     """
-    try:
-        link = link.split('#')[0].strip()
-        link = link.replace('git+', '')
-        link, branch = link.split('@', 1)
-        link = link.replace('.git', '')
-        pkg = link.split('/')[-1]
-        link = '{}/tarball/{}'.format(link, branch)
-        if '#egg=' not in link:
-            link = "{}#egg={}".format(link, pkg)
-        return link
-    except:
-        sys.stderr.write("Failed on link {!r}\n".format(link))
-        raise
+    Extract __*meta*__ from META_FILE.
+    """
+    meta_match = re.search(
+        r"^__{meta}__ = ['\"]([^'\"]*)['\"]".format(meta=meta),
+        META_FILE, re.M
+    )
+    if meta_match:
+        return meta_match.group(1)
+    raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
 
 
 class CleanCommand(Command):
@@ -69,38 +55,32 @@ class CleanCommand(Command):
         os.system('rm -vrf ./build ./dist ./*.pyc ./*.tgz ./*.egg-info')
 
 
-with open('./requirements.txt') as f:
-    raw_requirements = f.read().splitlines()
+if __name__ == "__main__":
+    setup(
+        name=NAME,
+        packages=PACKAGES,
+        classifiers=CLASSIFIERS,
 
+        version=find_meta('version'),
+        description=find_meta('description'),
+        author=find_meta('author'),
+        author_email=find_meta('email'),
+        license=find_meta('license'),
 
-setup(
-    name='cadasta-workertoolbox',
+        long_description=read('README.md'),
 
-    version=get_version('cadasta/workertoolbox'),
+        install_requires=[
+            "SQLAlchemy<=1.1.11",
+            "boto3<=1.4.4",
+            "celery<=4.0.2",
+            "kombu<=4.0.3",
+            "psycopg2<=2.7.1",
+        ],
+        dependency_links=[
+            "git+https://github.com/celery/kombu.git@master#egg=kombu-4.0.3"
+        ],
 
-    description='Cadasta Worker Toolbox',
-    long_description=(
-        'A collection of helpers for use in creating message consumers '
-        'for the Cadasta system.'
-    ),
-
-    author='Anthony Lukach',
-    author_email='alukach@cadasta.org',
-
-    license='GNU Affero General Public License v3.0',
-
-    packages=find_packages(),
-
-    install_requires=[
-        (req if '://' not in req.split('#')[0] else get_pkg_from_git_url(req))
-        for req in raw_requirements
-    ],
-    dependency_links=[
-        get_dependency_from_git_url(req)
-        for req in raw_requirements if '://' in req.split('#')[0]
-    ],
-
-    cmdclass={
-        'clean': CleanCommand,
-    }
-)
+        cmdclass={
+            'clean': CleanCommand,
+        }
+    )
