@@ -28,7 +28,8 @@ The `Config` class was built to simplify configuring Celery settings, helping to
 #### Required Arguments
 
 ##### `queues`
-The only required argument is the `queues` array. This should contain an array of names for queues that are to be used by the given worker. This includes queues from which the node processes tasks and queues into which the node will schedule tasks. It is not necessary to include the `'celery'` or `'platform.fifo'` queues, as these will be added automatically.
+The only required argument is the `queues` array. This should contain an array of names for queues that are to be used by the given worker. This includes queues from which the node processes tasks and queues into which the node will schedule tasks. It is not necessary to include the `'celery'` or `'platform.fifo'` queues, as these will be added automatically. The input of the `queues` variable will be stored as `QUEUES` on the `Config` instance.
+
 
 #### Optional Arguments
 Any [Celery setting](http://docs.celeryproject.org/en/v4.0.2/userguide/configuration.html#new-lowercase-settings) may be submitted. It is internal convention that we use the lowercase Celery settings rather than their older upper-case counterparts. This will ensure that they are displayed when calling `repr` on the `Conf` instance.
@@ -48,9 +49,6 @@ _Note: It is recommended that developers not alter this setting._
 
 #### Internal Variables
 By convention, all variables pertinent to only the `Config` class (i.e. not used by Celery) should be written entirely uppercase.
-
-##### `QUEUES`
-The input of the `queues` variable will be stored as `QUEUES` on the `Config` instance.
 
 ##### `RESULT_DB_USER`
 Variable used to populate the default `result_backend` template.
@@ -72,3 +70,20 @@ Variable used to populate the default `result_backend` template.
 Defaults to `'platform.fifo'`.
 
 _Note: It is recommended that developers not alter this setting._
+
+
+## Development
+
+### Testing
+
+```bash
+pip install -r requirements-test.txt
+./runtests
+```
+
+### Deploying
+
+```bash
+pip install -r requirements-deploy.txt
+python setup.py publish tag clean
+```
