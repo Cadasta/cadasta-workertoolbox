@@ -83,6 +83,9 @@ class TagCommand(Command):
         pass
 
     def run(self):
+        if os.system('git diff-index --quiet HEAD --'):
+            print("Unstaged or uncommitted changes detected. Tagging aborted.")
+            sys.exit()
         os.system("git tag -a {0} -m 'version {0}'".format(find_meta('version')))
         os.system("git push --tags")
 
