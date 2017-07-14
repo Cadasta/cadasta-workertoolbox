@@ -72,6 +72,25 @@ Defaults to `'platform.fifo'`.
 _Note: It is recommended that developers not alter this setting._
 
 
+### `cadasta.workertoolbox.tests.build_functional_tests`
+When provided with a Celery app instance, this function generates a suite of functional tests to ensure that the provided application's configuration and functionality conforms with the architecture of the Cadasta asynchronous system.
+
+An example, where an instanciated and configured `Celery()` app instance exists in a parallel `celery` module:
+
+```python
+from cadasta.workertoolbox.tests import build_functional_tests
+
+from .celery import app
+
+FunctionalTests = build_functional_tests(app)
+```
+
+To run these tests, use your standard test runner (e.g. `pytest`) or call manually from the command-line:
+
+```bash
+python -m unittest path/to/tests.py
+```
+
 ## Development
 
 ### Testing

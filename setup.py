@@ -7,7 +7,7 @@ from setuptools import setup, find_packages, Command
 
 ###
 NAME = 'cadasta-workertoolbox'
-META_PATH = os.path.join("cadasta", "workertoolbox", "__init__.py")
+META_PATH = ["cadasta", "workertoolbox", "__init__.py"]
 PACKAGES = find_packages()
 CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
@@ -15,10 +15,10 @@ CLASSIFIERS = [
 ###
 
 
-def read(*parts):
+def read(parts):
     """
-    Build an absolute path from *parts* and and return the contents of the
-    resulting file.  Assume UTF-8 encoding.
+    Build an absolute path from parts array and and return the contents
+    of the resulting file.  Assume UTF-8 encoding.
     """
     cur_dir = os.path.abspath(os.path.dirname(__file__))
     with codecs.open(os.path.join(cur_dir, *parts), "rb", "utf-8") as f:
