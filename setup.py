@@ -118,7 +118,7 @@ if __name__ == "__main__":
         install_requires=[
             'boto3>=1.4.4',
             'celery>=4.0.2',
-            'kombu>=4.0.3',
+            'kombu==4.0.3',
             'psycopg2>=2.7.1',
             'SQLAlchemy>=1.1.11',
             'pycurl>=7.43.0',
