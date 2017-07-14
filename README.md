@@ -104,5 +104,5 @@ pip install -r requirements-test.txt
 
 ```bash
 pip install -r requirements-deploy.txt
-python setup.py clean dist publish tag
+python setup.py clean build publish tag
 ```

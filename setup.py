@@ -41,6 +41,14 @@ def find_meta(meta):
     raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
 
 
+def ensure_clean_git(operation='operation'):
+    """ Verify that git has no uncommitted changes """
+    if os.system('git diff-index --quiet HEAD --'):
+        print("Unstaged or uncommitted changes detected. {} aborted.".format(
+            operation.capitalize()))
+        sys.exit()
+
+
 class CleanCommand(Command):
     """ Custom clean command to tidy up the project root. """
     user_options = []
@@ -65,6 +73,7 @@ class PublishCommand(Command):
         pass
 
     def run(self):
+        ensure_clean_git('publishing')
         if os.system("pip freeze | grep twine"):
             print("twine not installed.\nUse `pip install twine`.\nExiting.")
             sys.exit()
@@ -83,10 +92,9 @@ class TagCommand(Command):
         pass
 
     def run(self):
-        if os.system('git diff-index --quiet HEAD --'):
-            print("Unstaged or uncommitted changes detected. Tagging aborted.")
-            sys.exit()
-        os.system("git tag -a {0} -m 'version {0}'".format(find_meta('version')))
+        ensure_clean_git('tagging')
+        os.system("git tag -a {0} -m 'version {0}'".format(
+            find_meta('version')))
         os.system("git push --tags")
 
 
@@ -96,7 +104,8 @@ if __name__ == "__main__":
         import pypandoc
         pattern = re.compile('<.*\w*>')
         no_html_descr = re.sub(pattern, '', long_description)
-        long_description = pypandoc.convert_text(no_html_descr, 'rst', 'markdown')
+        long_description = pypandoc.convert_text(
+            no_html_descr, 'rst', 'markdown')
     except(IOError, ImportError):
         if 'publish' in sys.argv:
             raise
