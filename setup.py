@@ -116,16 +116,13 @@ if __name__ == "__main__":
         long_description=long_description,
 
         install_requires=[
-            'boto3>=1.4.4',
-            'celery>=4.0.2',
-            'kombu==4.0.3',
-            'psycopg2>=2.7.1',
-            'SQLAlchemy>=1.1.11',
-            'pycurl>=7.43.0',
-            'mock>=2.0.0',
-        ],
-        dependency_links=[
-            'git+https://github.com/celery/kombu.git@master#egg=kombu-4.0.3'
+            'boto3==1.4.4',
+            'celery==4.0.2',
+            'kombu==4.0.2',
+            'psycopg2==2.7.1',
+            'SQLAlchemy==1.1.11',
+            'pycurl==7.43.0',
+            'mock==2.0.0',
         ],
 
         cmdclass={
