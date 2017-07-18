@@ -4,9 +4,13 @@ from mock import patch, MagicMock
 from celery import signals
 
 
-def build_functional_tests(app):
+def build_functional_tests(app, is_worker=True):
     """
     Helper to produce sanity tests for provided configuration.
+
+    app: A configured Celery app instance
+    is_worker: If this codebase is to be run as a Celery worker (as
+        opposed to a codebase that is only a task producer).
     """
     class TestConfigFunctional(unittest.TestCase):
         """ Ensure that our configuration provides expected functionality """
@@ -15,7 +19,8 @@ def build_functional_tests(app):
         @patch('kombu.transport.SQS.Channel.sqs', MagicMock())
         def setUpClass(cls):
             cls.app = app
-            signals.worker_init.send(sender=None)
+            if is_worker:
+                signals.worker_init.send(sender=None)
             cls.channel = cls.app.connection().channel()
 
         def test_default_queue_name(self):
