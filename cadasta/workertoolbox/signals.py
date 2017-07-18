@@ -7,9 +7,8 @@ def setup_exchanges(**kwargs):
     from celery import app as _app
 
     app = _app.app_or_default()
-    p = app.amqp.producer_pool.acquire()
-    try:
-        for q in app.conf.task_queues:
-            p.maybe_declare(q)
-    finally:
-        p.release()
+    with app.producer_or_acquire() as P:
+        # Ensure all queues are noticed and configured with their
+        # appropriate exchange.
+        for q in app.amqp.queues.values():
+            P.maybe_declare(q)
