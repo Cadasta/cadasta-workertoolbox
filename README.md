@@ -110,16 +110,19 @@ _Note: It is recommended that developers not alter this setting._
 Used to populate the `queue_name_prefix` value of the connections `broker_transport_options`. Defaults to value of `QUEUE_PREFIX` environment variable if populated, `'dev'` if not.
 
 ##### `RESULT_DB_USER`
-Used to populate the default `result_backend` template.
+Used to populate the default `result_backend` template. Defaults to `RESULT_DB_USER` environment variable if populated, `'cadasta'` if not.
 
 ##### `RESULT_DB_PASS`
-Used to populate the default `result_backend` template.
+Used to populate the default `result_backend` template. Defaults to `RESULT_DB_PASS` environment variable if populated, `'cadasta'` if not.
 
 ##### `RESULT_DB_HOST`
-Used to populate the default `result_backend` template.
+Used to populate the default `result_backend` template. Defaults to `RESULT_DB_HOST` environment variable if populated, `'localhost'` if not.
+
+##### `RESULT_DB_PORT`
+Used to populate the default `result_backend` template. Defaults to `RESULT_DB_PORT` environment variable if populated, `'cadasta'` if not.
 
 ##### `RESULT_DB_NAME`
-Used to populate the default `result_backend` template.
+Used to populate the default `result_backend` template. Defaults to `RESULT_DB_PORT` environment variable if populated, `'5432'` if not.
 
 
 ### `cadasta.workertoolbox.tests.build_functional_tests`

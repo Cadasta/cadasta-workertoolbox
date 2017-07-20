@@ -21,9 +21,10 @@ class Config:
     RESULT_DB_PASS = os.environ.get('RESULT_DB_PASS', 'cadasta')
     RESULT_DB_HOST = os.environ.get('RESULT_DB_HOST', 'localhost')
     RESULT_DB_NAME = os.environ.get('RESULT_DB_NAME', 'cadasta')
+    RESULT_DB_PORT = os.environ.get('RESULT_DB_PORT', '5432')
     result_backend = (
         'db+postgresql://{0.RESULT_DB_USER}:{0.RESULT_DB_PASS}@'
-        '{0.RESULT_DB_HOST}/{0.RESULT_DB_NAME}')
+        '{0.RESULT_DB_HOST}:{0.RESULT_DB_PORT}/{0.RESULT_DB_NAME}')
     task_track_started = True
 
     # Exchanges

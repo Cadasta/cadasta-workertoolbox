@@ -26,7 +26,7 @@ class TestConfigClass(unittest.TestCase):
     def test_backend_default(self):
         self.assertEqual(
             Config(queues=[]).result_backend,
-            'db+postgresql://cadasta:cadasta@localhost/cadasta')
+            'db+postgresql://cadasta:cadasta@localhost:5432/cadasta')
 
     def test_backend_custom(self):
         self.assertEqual(
