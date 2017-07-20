@@ -20,7 +20,7 @@ To keep our system aware of all tasks being scheduled, the Cadasta Platform has 
 
 ### Tracking Task Results
 
-_TODO_
+Tasks results are inserted by each worker into the Platform DB. For this reason, it is important that each worker have network access to the Platform DB (via AWS Security Groups). Additionally, each worker should have a provided username and password that grants them authorization to write to the Platform DB's Result Table. For reasons of security, it is advised that these credentials be permitted to only access this single table. The Result Table has a one-to-one relation via the `task_id` column to the Task Table. This should not be enforced via a constraint, as it is possible for a task's result to be entered into the DB _before_ the sync-tasks service enters the task into the Task Table.
 
 
 ## Library
