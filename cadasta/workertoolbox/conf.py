@@ -9,13 +9,12 @@ from .signals import *  # NOQA
 
 class Config:
     # Broker
-    prefix = os.environ.get('QUEUE_PREFIX', 'dev')
+    QUEUE_NAME_PREFIX = os.environ.get('QUEUE_PREFIX', 'dev')
     broker_transport = 'sqs'
     broker_transport_options = {
         'region': 'us-west-2',
-        'queue_name_prefix': '{}-'.format(prefix)
+        'queue_name_prefix': '{}-'.format(QUEUE_NAME_PREFIX)
     }
-    worker_prefetch_multiplier = 0  # https://github.com/celery/celery/issues/3712  # noqa
 
     # Results
     RESULT_DB_USER = os.environ.get('RESULT_DB_USER', 'cadasta')
@@ -78,13 +77,13 @@ class Config:
     @staticmethod
     def _generate_queues(queues, exchange, platform_queue):
         """ Queues known by this worker """
-        return set((
+        return set([
             Queue('celery', exchange, routing_key='celery'),
             Queue(platform_queue, exchange, routing_key='#'),
-        ) + tuple(
+        ] + [
             Queue(q_name, exchange, routing_key=q_name)
             for q_name in queues
-        ))
+        ])
 
     @staticmethod
     def _generate_routes(queues, exchange):
