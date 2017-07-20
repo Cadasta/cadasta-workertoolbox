@@ -12,6 +12,15 @@ PACKAGES = find_packages()
 CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
 ]
+REQUIREMENTS = [
+    'boto3>=1.4.4,<=1.5',
+    'celery>=4.0.2',
+    'kombu>=4.1.0,<=4.2',
+    'psycopg2>=2.7.1',
+    'SQLAlchemy>=1.1.11,<=1.2',
+    'pycurl>=7.43.0,<=7.44',
+    'mock>=2.0.0',
+]
 ###
 
 
@@ -139,19 +148,7 @@ if __name__ == "__main__":
 
         long_description=long_description,
 
-        install_requires=[
-            'boto3>=1.4.4',
-            'celery>=4.0.2',
-            'kombu>=4.0.2',
-            'psycopg2>=2.7.1',
-            'SQLAlchemy>=1.1.11',
-            'pycurl>=7.43.0',
-            'mock>=2.0.0',
-        ],
-        dependency_links=[
-            # HACK: Fake 4.0.2 version until 4.1.0 is released
-            "git+https://github.com/celery/kombu.git@master#egg=kombu-4.0.2",
-        ],
+        install_requires=REQUIREMENTS,
 
         cmdclass={
             'clean': CleanCommand,
