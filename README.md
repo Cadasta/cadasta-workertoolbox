@@ -10,6 +10,9 @@
 A collection of helpers to assist in quickly building asynchronous workers for the Cadasta system.
 
 ## Architecture
+
+![Async System Architecture Diagram](https://user-images.githubusercontent.com/897290/28102799-e9b04182-668e-11e7-84ae-51c6fa307303.png "Async System Architecture Diagram")
+
 The Cadasta asynchronous system is designed so that both the scheduled tasks and the task results can be tracked by the central [Cadasta Platform](https://github.com/Cadasta/cadasta-platform). To ensure that this takes place, all Celery workers must be correctly configured to support these features.
 
 ### Tracking Scheduled Tasks
