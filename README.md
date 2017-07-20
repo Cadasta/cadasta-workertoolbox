@@ -25,6 +25,7 @@ _TODO_
 ### `cadasta.workertoolbox.conf.Config`
 The `Config` class was built to simplify configuring Celery settings, helping to ensure that all workers adhere to the architecture requirements of the Cadasta asynchronous system. An instance of the `Config` should come configured with all Celery settings that are required by our system. It is the aim of the class to not require much customization on the part of the developer. However, some customization may be needed when altering configuration between environments (e.g. if dev settings vary greatly from prod settings).
 
+
 #### Required Arguments
 
 ##### `queues`
@@ -35,41 +36,87 @@ The only required argument is the `queues` array. This should contain an array o
 Any [Celery setting](http://docs.celeryproject.org/en/v4.0.2/userguide/configuration.html#new-lowercase-settings) may be submitted. It is internal convention that we use the lowercase Celery settings rather than their older upper-case counterparts. This will ensure that they are displayed when calling `repr` on the `Conf` instance.
 
 ##### `result_backend`
-_TODO_
+Defaults to `'db+postgresql://{0.RESULT_DB_USER}:{0.RESULT_DB_PASS}@{0.RESULT_DB_HOST}/{0.RESULT_DB_NAME}'` rendered with `self`.
+
+##### `broker_transport`
+Defaults to `'sqs`'.
+
+##### `broker_transport_options`
+Defaults to:
+
+```python
+{
+    'region': 'us-west-2',
+    'queue_name_prefix': '{}-'.format(QUEUE_NAME_PREFIX)
+}
+```
 
 ##### `task_queues`
-_TODO_
+Defaults to the following `set` of `kombu.Queue` objects, where `queues` is the configuration's required `queues` argument and `exchange` is an a `kombu.Exchange` object constructed from the `task_default_exchange` and `task_default_exchange_type` settings:
+
+```python
+set([
+    Queue('celery', exchange, routing_key='celery'),
+    Queue(platform_queue, exchange, routing_key='#'),
+] + [
+    Queue(q_name, exchange, routing_key=q_name)
+    for q_name in queues
+])
+```
 
 _Note: It is recommended that developers not alter this setting._
 
 ##### `task_routes`
-_TODO_
+Defaults to the following `dict`, where `queues` is the configuration's required `queues` argument and `exchange` is an a `kombu.Exchange` object constructed from the `task_default_exchange` and `task_default_exchange_type` settings:
+
+```python
+{
+    'celery.*': {
+        'exchange': exchange,
+        'routing_key': 'celery',
+    },
+}
+for q in queues:
+    routes.setdefault('{}.*'.format(q), {
+        'exchange': exchange,
+        'routing_key': q,
+    })
+```
 
 _Note: It is recommended that developers not alter this setting._
 
+##### `task_default_exchange`
+Defaults to `'task_exchange'`
+
+##### `task_default_exchange_type`
+Defaults to `'topic'`
+
+##### `task_track_started`
+Defaults to `True`.
+
+
 #### Internal Variables
 By convention, all variables pertinent to only the `Config` class (i.e. not used by Celery) should be written entirely uppercase.
-
-##### `RESULT_DB_USER`
-Variable used to populate the default `result_backend` template.
-
-
-##### `RESULT_DB_PASS`
-Variable used to populate the default `result_backend` template.
-
-
-##### `RESULT_DB_HOST`
-Variable used to populate the default `result_backend` template.
-
-
-##### `RESULT_DB_NAME`
-Variable used to populate the default `result_backend` template.
-
 
 ##### `PLATFORM_QUEUE_NAME`
 Defaults to `'platform.fifo'`.
 
 _Note: It is recommended that developers not alter this setting._
+
+##### `QUEUE_NAME_PREFIX`
+Used to populate the `queue_name_prefix` value of the connections `broker_transport_options`. Defaults to value of `QUEUE_PREFIX` environment variable if populated, `'dev'` if not.
+
+##### `RESULT_DB_USER`
+Used to populate the default `result_backend` template.
+
+##### `RESULT_DB_PASS`
+Used to populate the default `result_backend` template.
+
+##### `RESULT_DB_HOST`
+Used to populate the default `result_backend` template.
+
+##### `RESULT_DB_NAME`
+Used to populate the default `result_backend` template.
 
 
 ### `cadasta.workertoolbox.tests.build_functional_tests`
