@@ -98,6 +98,21 @@ class TagCommand(Command):
         os.system("git push --tags")
 
 
+class TestCommand(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        if os.system("./runtests"):
+            print("Tests failed, exiting.")
+            sys.exit()
+
+
 if __name__ == "__main__":
     long_description = open('README.md').read()
     try:
@@ -134,7 +149,7 @@ if __name__ == "__main__":
             'mock>=2.0.0',
         ],
         dependency_links=[
-            # HACK: Fake 4.0.2 version until 4.0.3 is released
+            # HACK: Fake 4.0.2 version until 4.1.0 is released
             "git+https://github.com/celery/kombu.git@master#egg=kombu-4.0.2",
         ],
 
@@ -142,5 +157,6 @@ if __name__ == "__main__":
             'clean': CleanCommand,
             'publish': PublishCommand,
             'tag': TagCommand,
+            'test': TestCommand,
         }
     )

@@ -151,5 +151,5 @@ pip install -r requirements-test.txt
 
 ```bash
 pip install -r requirements-deploy.txt
-python setup.py clean build publish tag
+python setup.py test clean build publish tag
 ```
