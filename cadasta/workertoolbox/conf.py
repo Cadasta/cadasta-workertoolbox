@@ -60,8 +60,7 @@ class Config:
                 self.PLATFORM_QUEUE_NAME)
 
         if not hasattr(self, 'task_routes'):
-            self.task_routes = self._generate_routes(
-                self.QUEUES, self._default_exchange_obj)
+            self.task_routes = self._route_task
 
     def __repr__(self):
         attr_str = pprint.pformat(self.to_dict())
@@ -86,21 +85,8 @@ class Config:
             for q_name in queues
         ])
 
-    @staticmethod
-    def _generate_routes(queues, exchange):
-        """
-        Associate specific task names or task name patterns to an
-        exchange and routing key
-        """
-        routes = {
-            'celery.*': {
-                'exchange': exchange,
-                'routing_key': 'celery',
-            },
+    def _route_task(self, name, args, kwargs, options, task=None, **kw):
+        return {
+            'routing_key': name.split('.')[0],
+            'exchange': self._default_exchange_obj
         }
-        for q in queues:
-            routes.setdefault('{}.*'.format(q), {
-                'exchange': exchange,
-                'routing_key': q,
-            })
-        return routes

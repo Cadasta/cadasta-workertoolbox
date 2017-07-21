@@ -70,21 +70,7 @@ set([
 _Note: It is recommended that developers not alter this setting._
 
 ##### `task_routes`
-Defaults to the following `dict`, where `queues` is the configuration's required `queues` argument and `exchange` is an a `kombu.Exchange` object constructed from the `task_default_exchange` and `task_default_exchange_type` settings:
-
-```python
-{
-    'celery.*': {
-        'exchange': exchange,
-        'routing_key': 'celery',
-    },
-}
-for q in queues:
-    routes.setdefault('{}.*'.format(q), {
-        'exchange': exchange,
-        'routing_key': q,
-    })
-```
+Defaults to a function that will generate a dict with the `routing_key` matching the first index of the task name split on the `.` and the `exchange` set to the `_default_exchange_obj`.
 
 _Note: It is recommended that developers not alter this setting._
 
