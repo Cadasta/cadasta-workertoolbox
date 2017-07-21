@@ -26,17 +26,13 @@ Tasks results are inserted by each worker into the Platform DB. For this reason,
 ## Library
 
 ### `cadasta.workertoolbox.conf.Config`
-The `Config` class was built to simplify configuring Celery settings, helping to ensure that all workers adhere to the architecture requirements of the Cadasta asynchronous system. An instance of the `Config` should come configured with all Celery settings that are required by our system. It is the aim of the class to not require much customization on the part of the developer. However, some customization may be needed when altering configuration between environments (e.g. if dev settings vary greatly from prod settings).
+The `Config` class was built to simplify configuring Celery settings, helping to ensure that all workers adhere to the architecture requirements of the Cadasta asynchronous system. It essentially offers a diff between Celery's default configuration and the configuration required by our system. It is the aim of the class to not require much customization on the part of the developer, however some customization may be needed when altering configuration between environments (e.g. if dev settings vary greatly from prod settings).
 
+Any [Celery setting](http://docs.celeryproject.org/en/v4.0.2/userguide/configuration.html#new-lowercase-settings) may be submitted. It is internal convention that we use the Celery's newer lowercase settings rather than their older uppercase counterparts. This will ensure that they are displayed when calling `repr` on the `Conf` instance.
 
-#### Required Arguments
+Once applied, all settings (and internal variables) are available on the Celery `app` instance's `app.conf` object.
 
-##### `queues`
-The only required argument is the `queues` array. This should contain an array of names for queues that are to be used by the given worker. This includes queues from which the node processes tasks and queues into which the node will schedule tasks. It is not necessary to include the `'celery'` or `'platform.fifo'` queues, as these will be added automatically. The input of the `queues` variable will be stored as `QUEUES` on the `Config` instance.
-
-
-#### Optional Arguments
-Any [Celery setting](http://docs.celeryproject.org/en/v4.0.2/userguide/configuration.html#new-lowercase-settings) may be submitted. It is internal convention that we use the lowercase Celery settings rather than their older upper-case counterparts. This will ensure that they are displayed when calling `repr` on the `Conf` instance.
+#### Provided Configuration
 
 ##### `result_backend`
 Defaults to `'db+postgresql://{0.RESULT_DB_USER}:{0.RESULT_DB_PASS}@{0.RESULT_DB_HOST}/{0.RESULT_DB_NAME}'` rendered with `self`.
@@ -55,7 +51,7 @@ Defaults to:
 ```
 
 ##### `task_queues`
-Defaults to the following `set` of `kombu.Queue` objects, where `queues` is the configuration's required `queues` argument and `exchange` is an a `kombu.Exchange` object constructed from the `task_default_exchange` and `task_default_exchange_type` settings:
+Defaults to the following `set` of `kombu.Queue` objects, where `queues` is the configuration's internal `QUEUES` variable and `exchange` is a `kombu.Exchange` object constructed from the `task_default_exchange` and `task_default_exchange_type` settings:
 
 ```python
 set([
@@ -70,7 +66,7 @@ set([
 _Note: It is recommended that developers not alter this setting._
 
 ##### `task_routes`
-Defaults to a function that will generate a dict with the `routing_key` matching the first index of the task name split on the `.` and the `exchange` set to the `_default_exchange_obj`.
+Defaults to a function that will generate a dict with the `routing_key` matching the value at the first index of a task name split on the `.` and the `exchange` set to a `kombu.Exchange` object constructed from the `task_default_exchange` and `task_default_exchange_type` settings
 
 _Note: It is recommended that developers not alter this setting._
 
@@ -85,7 +81,10 @@ Defaults to `True`.
 
 
 #### Internal Variables
-By convention, all variables pertinent to only the `Config` class (i.e. not used by Celery) should be written entirely uppercase.
+By convention, all variables used to construct Celery configuration should should be written entirely uppercase.
+
+##### `QUEUES`
+This should contain an array of names for all service-related queues used by the Cadasta Platform. These values are used to construct the `task_queues` configuration. For the purposes of routing followup tasks, it's important that every task consumer is aware of all queues available. For this reason, if a queue is used by any service worker then it should be specified within this array. It is not necessary to include the `'celery'` or `'platform.fifo'` queues. Defaults to the contents of the `DEFAULT_QUEUES` variable in the modules [`__init__.py` file](/cadasta/workertoolbox/__init__.py).
 
 ##### `PLATFORM_QUEUE_NAME`
 Defaults to `'platform.fifo'`.

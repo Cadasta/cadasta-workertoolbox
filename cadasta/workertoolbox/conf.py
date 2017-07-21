@@ -5,6 +5,7 @@ from kombu import Exchange, Queue
 
 # Ensure signals are imported before app starts
 from .signals import *  # NOQA
+from . import DEFAULT_QUEUES
 
 
 class Config:
@@ -31,20 +32,17 @@ class Config:
     task_default_exchange = 'task_exchange'
     task_default_exchange_type = 'topic'
 
-    _default_exchange_obj = Exchange(
-        task_default_exchange, task_default_exchange_type)
-
     # Queues
     PLATFORM_QUEUE_NAME = 'platform.fifo'
 
-    def __init__(self, queues, imports=('app.tasks',), **kwargs):
+    def __init__(self, QUEUES=DEFAULT_QUEUES, imports=('app.tasks',), **kw):
         """
         Object to manage Celery application configuration.
         """
-        self.QUEUES = queues
+        self.QUEUES = QUEUES
         self.imports = imports
 
-        for k, v in kwargs.items():
+        for k, v in kw.items():
             setattr(self, k, v)
 
         try:
@@ -73,6 +71,12 @@ class Config:
             if (k.islower() and not k.startswith('_') and
                 not callable(getattr(self, k)))
         }
+
+    @property
+    def _default_exchange_obj(self):
+        return Exchange(
+            self.task_default_exchange,
+            self.task_default_exchange_type)
 
     @staticmethod
     def _generate_queues(queues, exchange, platform_queue):
