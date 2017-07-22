@@ -52,3 +52,7 @@ class TestConfigClass(unittest.TestCase):
             getattr(context.exception, 'message', context.exception.args[0]),
             "Unable to render 'result_backend' value: '{0.foo}:{}'"
         )
+
+    def test_default_chord_unlock_max_retries(self):
+        conf = Config()
+        self.assertTrue(isinstance(conf.CHORD_UNLOCK_MAX_RETRIES, int))

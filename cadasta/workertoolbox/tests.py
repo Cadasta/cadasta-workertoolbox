@@ -1,8 +1,6 @@
 import unittest
 from mock import patch, MagicMock
 
-from celery import signals
-
 
 def build_functional_tests(app, is_worker=True):
     """
@@ -20,7 +18,13 @@ def build_functional_tests(app, is_worker=True):
         def setUpClass(cls):
             cls.app = app
             if is_worker:
-                signals.worker_init.send(sender=None)
+                try:
+                    app.Worker()  # Init worker (sends signal)
+                except ModuleNotFoundError:
+                    # Can't instantiate worker from celery-workertoolbox
+                    # repo, as provided app is not in bonafide module
+                    from celery import signals
+                    signals.worker_init.send(sender=cls)
             cls.channel = cls.app.connection().channel()
 
         def test_default_queue_name(self):
@@ -84,4 +88,11 @@ def build_functional_tests(app, is_worker=True):
             self.assertEqual(len(queues), 2)
             self.assertTrue('celery' in queues)
             self.assertTrue(self.app.conf.PLATFORM_QUEUE_NAME in queues)
+
+        def test_max_retries(self):
+            """ Ensure that, by default, max_retries is set to an int """
+            self.assertEqual(
+                type(self.app.tasks['celery.chord_unlock'].max_retries),
+                int)
+
     return TestConfigFunctional

@@ -35,6 +35,9 @@ class Config:
     # Queues
     PLATFORM_QUEUE_NAME = 'platform.fifo'
 
+    # Tasks
+    CHORD_UNLOCK_MAX_RETRIES = 60 * 60 * 6  # 6hrs
+
     def __init__(self, QUEUES=DEFAULT_QUEUES, imports=('app.tasks',), **kw):
         """
         Object to manage Celery application configuration.
