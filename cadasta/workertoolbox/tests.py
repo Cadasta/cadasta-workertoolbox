@@ -18,13 +18,7 @@ def build_functional_tests(app, is_worker=True):
         def setUpClass(cls):
             cls.app = app
             if is_worker:
-                try:
-                    app.Worker()  # Init worker (sends signal)
-                except ModuleNotFoundError:
-                    # Can't instantiate worker from celery-workertoolbox
-                    # repo, as provided app is not in bonafide module
-                    from celery import signals
-                    signals.worker_init.send(sender=cls)
+                app.Worker()  # Init worker (sends signal)
             cls.channel = cls.app.connection().channel()
 
         def test_default_queue_name(self):

@@ -5,7 +5,7 @@ from cadasta.workertoolbox.tests import build_functional_tests
 
 
 app = Celery()
-conf = Config()
+conf = Config(imports=tuple())
 app.config_from_object(conf)
 
 
@@ -20,6 +20,7 @@ class FunctionalTests(build_functional_tests(app)):
         my_app.config_from_object(Config(CHORD_UNLOCK_MAX_RETRIES=1234))
 
         self.assertEqual(my_app.tasks['celery.chord_unlock'].max_retries, None)
+
         class sender():
             app = my_app
 
