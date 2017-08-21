@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock
+from mock import MagicMock
 
 from cadasta.workertoolbox import utils
 
