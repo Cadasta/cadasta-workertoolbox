@@ -123,7 +123,12 @@ class TestCommand(Command):
 
 
 if __name__ == "__main__":
-    long_description = open('README.md').read()
+    try:
+        long_description = open('README.md').read()
+    except IOError:
+        if 'publish' in sys.argv:
+            raise
+        long_description = "Failed to open README.md"
     try:
         import pypandoc
         pattern = re.compile('<.*\w*>')
