@@ -18,7 +18,7 @@ class Config:
     }
 
     # Results
-    RESULT_DB_USER = os.environ.get('RESULT_DB_USER', 'cadasta')
+    RESULT_DB_USER = os.environ.get('RESULT_DB_USER', 'worker')
     RESULT_DB_PASS = os.environ.get('RESULT_DB_PASS', 'cadasta')
     RESULT_DB_HOST = os.environ.get('RESULT_DB_HOST', 'localhost')
     RESULT_DB_NAME = os.environ.get('RESULT_DB_NAME', 'cadasta')
