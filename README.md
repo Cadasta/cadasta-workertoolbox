@@ -112,6 +112,14 @@ Used to populate the default `result_backend` template. Defaults to `RESULT_DB_P
 ##### `CHORD_UNLOCK_MAX_RETRIES`
 Used to set the maximum number of times a `celery.chord_unlock` task may retry before giving up. See celery/celery#2725. Defaults to `43200` (meaning to give up after 6 hours, assuming the default of the task's `default_retry_delay` being set to 1 second).
 
+### `cadasta.workertoolbox.setup.setup_app`
+After the Celery application is provided a configuration object, there are other steups that must follow to properly configure the application. For example, the exchanges and queues described in the configuration must be declared. This function calls those required followup procedures. Typically, it is called automatically by the [`worker_init`](http://docs.celeryproject.org/en/latest/userguide/signals.html#worker-init) signal, however it must be called manually by codebases that are run only as task producers or from within a Python shell.
+
+It takes two arguments:
+
+* `app` - A `Celery()` app instance. _Required_
+* `throw` - Boolean stipulating if errors should be raise on failed setup. Otherwise, errors will simply be logged to the module logger at `exception` level. _Optional, default: True_
+
 
 ### `cadasta.workertoolbox.tests.build_functional_tests`
 When provided with a Celery app instance, this function generates a suite of functional tests to ensure that the provided application's configuration and functionality conforms with the architecture of the Cadasta asynchronous system.

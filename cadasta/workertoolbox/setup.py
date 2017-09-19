@@ -30,7 +30,7 @@ SETUP_FUNCS = (
 )
 
 
-def setup_app(app, throw=False):
+def setup_app(app, throw=True):
     """
     Ensure application is set up to expected configuration. This function is
     typically triggered by the worker_init signal, however it must be called

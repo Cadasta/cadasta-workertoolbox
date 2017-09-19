@@ -20,7 +20,7 @@ class TestSetup(unittest.TestCase):
     def test_caught_failures(self, logger):
 
         app = Celery()
-        setup.setup_app(app)
+        setup.setup_app(app, throw=False)
 
         from cadasta.workertoolbox.setup import SETUP_FUNCS
         for func in SETUP_FUNCS:
