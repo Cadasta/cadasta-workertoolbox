@@ -18,7 +18,6 @@ class TestSetup(unittest.TestCase):
            (mock_setup_func(True), mock_setup_func(False)))
     @patch('cadasta.workertoolbox.setup.logger')
     def test_caught_failures(self, logger):
-
         app = Celery()
         setup.setup_app(app, throw=False)
 
@@ -29,11 +28,12 @@ class TestSetup(unittest.TestCase):
         logger.exception.assert_called_once_with(
             'Failed to run setup function %r(app)', 'SetupFuncB')
 
+        self.assertFalse(app.was_setup)
+
     @patch('cadasta.workertoolbox.setup.SETUP_FUNCS',
            (mock_setup_func(True), mock_setup_func(False)))
     @patch('cadasta.workertoolbox.setup.logger')
     def test_thrown_failures(self, logger):
-
         app = Celery()
         with self.assertRaises(AttributeError):
             setup.setup_app(app, throw=True)
@@ -43,3 +43,18 @@ class TestSetup(unittest.TestCase):
             SETUP_FUNCS[0].assert_called_once_with(app)
 
         self.assertFalse(logger.exception.called)
+        self.assertFalse(app.was_setup)
+
+    @patch('cadasta.workertoolbox.setup.SETUP_FUNCS',
+           (mock_setup_func(True), mock_setup_func(True)))
+    @patch('cadasta.workertoolbox.setup.logger')
+    def test_no_failures(self, logger):
+        app = Celery()
+        setup.setup_app(app, throw=True)
+
+        from cadasta.workertoolbox.setup import SETUP_FUNCS
+        for func in SETUP_FUNCS:
+            SETUP_FUNCS[0].assert_called_once_with(app)
+
+        self.assertFalse(logger.exception.called)
+        self.assertTrue(app.was_setup)

@@ -37,17 +37,17 @@ def setup_app(app, throw=True):
     manually by codebases that are run only as task producers or from within
     a Python shell.
     """
-    errored = False
+    success = True
     try:
         for func in SETUP_FUNCS:
             try:
                 func(app)
             except:
-                errored = True
+                success = False
                 if throw:
                     raise
                 else:
                     logger.exception(
                         "Failed to run setup function %r(app)", func.__name__)
     finally:
-        setattr(app, 'is_setup', errored)
+        setattr(app, 'was_setup', success)
