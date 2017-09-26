@@ -50,4 +50,4 @@ def setup_app(app, throw=True):
                     msg = "Failed to run setup function %r(app)"
                     logger.exception(msg, func.__name__)
     finally:
-        setattr(app, 'was_setup', success)
+        setattr(app, 'is_set_up', success)

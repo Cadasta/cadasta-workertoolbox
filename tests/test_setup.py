@@ -28,7 +28,7 @@ class TestSetup(unittest.TestCase):
         logger.exception.assert_called_once_with(
             'Failed to run setup function %r(app)', 'SetupFuncB')
 
-        self.assertFalse(app.was_setup)
+        self.assertFalse(app.is_set_up)
 
     @patch('cadasta.workertoolbox.setup.SETUP_FUNCS',
            (mock_setup_func(True), mock_setup_func(False)))
@@ -43,7 +43,7 @@ class TestSetup(unittest.TestCase):
             SETUP_FUNCS[0].assert_called_once_with(app)
 
         self.assertFalse(logger.exception.called)
-        self.assertFalse(app.was_setup)
+        self.assertFalse(app.is_set_up)
 
     @patch('cadasta.workertoolbox.setup.SETUP_FUNCS',
            (mock_setup_func(True), mock_setup_func(True)))
@@ -57,4 +57,4 @@ class TestSetup(unittest.TestCase):
             SETUP_FUNCS[0].assert_called_once_with(app)
 
         self.assertFalse(logger.exception.called)
-        self.assertTrue(app.was_setup)
+        self.assertTrue(app.is_set_up)
