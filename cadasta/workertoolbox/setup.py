@@ -47,7 +47,7 @@ def setup_app(app, throw=True):
                 if throw:
                     raise
                 else:
-                    logger.exception(
-                        "Failed to run setup function %r(app)", func.__name__)
+                    msg = "Failed to run setup function %r(app)"
+                    logger.exception(msg, func.__name__)
     finally:
         setattr(app, 'was_setup', success)
