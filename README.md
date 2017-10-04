@@ -9,20 +9,6 @@
 
 A collection of helpers to assist in quickly building asynchronous workers for the Cadasta system.
 
-## Architecture
-
-![Async System Architecture Diagram](https://user-images.githubusercontent.com/897290/28102799-e9b04182-668e-11e7-84ae-51c6fa307303.png "Async System Architecture Diagram")
-
-The Cadasta asynchronous system is designed so that both the scheduled tasks and the task results can be tracked by the central [Cadasta Platform](https://github.com/Cadasta/cadasta-platform). To ensure that this takes place, all Celery workers must be correctly configured to support these features.
-
-### Tracking Scheduled Tasks
-To keep our system aware of all tasks being scheduled, the Cadasta Platform has a process running to consume task messages off of a task-monitor queue and insert those messages into our database. To support this design, all task producers (including worker nodes) must publish their task messages to both the normal destination queues and the task-monitor queue. This is acheived by registering all queues with a [Topic Exchange](http://docs.celeryproject.org/en/latest/userguide/routing.html#topic-exchanges), setting the task-monitor queue to subscribe to all messages sent to the exchange, and setting standard work queues to subscribe to messages with a matching `routing_key`. Being that the Cadasta Platform is designed to work with Amazon SQS and the [SQS backend only keeps exchange/queue declarations in memory](http://docs.celeryproject.org/projects/kombu/en/v4.0.2/introduction.html#f1), each message producer must have this set up within their configuration. (For more reading on Exchanges, see the [RabbitMQ Tutorials 1-5](https://www.rabbitmq.com/tutorials/tutorial-one-python.html))
-
-### Tracking Task Results
-
-Tasks results are inserted by each worker into the Platform DB. For this reason, it is important that each worker have network access to the Platform DB (via AWS Security Groups). Additionally, each worker should have a provided username and password that grants them authorization to write to the Platform DB's Result Table. For reasons of security, it is advised that these credentials be permitted to only access this single table. The Result Table has a one-to-one relation via the `task_id` column to the Task Table. This should not be enforced via a constraint, as it is possible for a task's result to be entered into the DB _before_ the sync-tasks service enters the task into the Task Table.
-
-
 ## Library
 
 ### `cadasta.workertoolbox.conf.Config`
