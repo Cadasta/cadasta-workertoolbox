@@ -88,14 +88,14 @@ Used to set the maximum number of times a `celery.chord_unlock` task may retry b
 ##### `SETUP_LOGGING` _(provided via argument)_
 Controls whether a default logging configuration should be applied to the application. At a bare minimum, this includes:
 
-    * creating a console log handler for `INFO` level logs
-    * a file log handlers for `INFO` level logs, saved to `app.info.log`
-    * a file log handlers for `ERROR` level logs, saved to `app.error.log`
+* creating a console log handler for `INFO` level logs
+* a file log handlers for `INFO` level logs, saved to `app.info.log`
+* a file log handlers for `ERROR` level logs, saved to `app.error.log`
 
 If the `OPBEAT_ORGANIZATION_ID` environment variable is set, the following logging configuration take place:
 
-    * add an [OpBeat](https://opbeat.com/) file handle for `ERROR` level logs
-    * add an [OpBeat](https://opbeat.com/) [task_failure signal](http://docs.celeryproject.org/en/latest/userguide/signals.html#task-failure) handler to log all faild tasks
+* add an [OpBeat](https://opbeat.com/) file handle for `ERROR` level logs
+* add an [OpBeat](https://opbeat.com/) [task_failure signal](http://docs.celeryproject.org/en/latest/userguide/signals.html#task-failure) handler to log all faild tasks
 
 Defaults to `True`.
 
