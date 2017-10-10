@@ -19,7 +19,7 @@ DEFAULT_LOGGING_CONFIG = {
     'formatters': {
         'colored': {
             'format': DEFAULT_LOGGING_FMT,
-            'class': 'cadasta.workertoolbox.logging.ColorFormatter'
+            'class': 'cadasta.workertoolbox.utils.ColorFormatter'
         },
         'default': {
             'format': DEFAULT_LOGGING_FMT,

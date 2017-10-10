@@ -24,3 +24,6 @@ class TestUtils(unittest.TestCase):
         )
         # Assert links were removed from request
         self.assertEqual(mock_task.request.callbacks, None)
+
+    def test_colorformatter(self):
+        assert utils.ColorFormatter("%(message)s")
