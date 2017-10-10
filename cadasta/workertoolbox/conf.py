@@ -58,11 +58,11 @@ DEFAULT_LOGGING_CONFIG = {
 
 class Config:
     # Broker
-    QUEUE_NAME_PREFIX = env.get('QUEUE_PREFIX', 'dev')
+    QUEUE_PREFIX = env.get('QUEUE_PREFIX', 'dev')
     broker_transport = 'sqs'
     broker_transport_options = {
         'region': 'us-west-2',
-        'queue_name_prefix': '{}-'.format(QUEUE_NAME_PREFIX)
+        'queue_name_prefix': '{}-'.format(QUEUE_PREFIX)
     }
 
     # Results

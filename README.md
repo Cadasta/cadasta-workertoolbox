@@ -99,7 +99,7 @@ If the `OPBEAT_ORGANIZATION_ID` environment variable is set, the following loggi
 
 Defaults to `True`.
 
-##### `QUEUE_NAME_PREFIX` _(provided via environment variable)_
+##### `QUEUE_PREFIX` _(provided via environment variable)_
 Used to populate the `queue_name_prefix` value of the connections `broker_transport_options`. Defaults to value of `QUEUE_PREFIX` environment variable if populated, `'dev'` if not.
 
 ##### `RESULT_DB_USER` _(provided via environment variable)_
@@ -115,7 +115,7 @@ Used to populate the default `result_backend` template. Defaults to `RESULT_DB_H
 Used to populate the default `result_backend` template. Defaults to `RESULT_DB_PORT` environment variable if populated, `'cadasta'` if not.
 
 ##### `RESULT_DB_NAME` _(provided via environment variable)_
-Used to populate the default `result_backend` template. Defaults to `RESULT_DB_PORT` environment variable if populated, `'5432'` if not.
+Used to populate the default `result_backend` template. Defaults to `RESULT_DB_NAME` environment variable if populated, `'5432'` if not.
 
 ### `cadasta.workertoolbox.setup.setup_app`
 After the Celery application is provided a configuration object, there are other steups that must follow to properly configure the application. For example, the exchanges and queues described in the configuration must be declared. This function calls those required followup procedures. Typically, it is called automatically by the [`worker_init`](http://docs.celeryproject.org/en/latest/userguide/signals.html#worker-init) signal, however it must be called manually by codebases that are run only as task producers or from within a Python shell.
