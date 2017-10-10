@@ -23,6 +23,8 @@ Once applied, all settings (and internal variables) are available on the Celery 
 
 #### Provided Configuration
 
+Below is the configuration that the `Config` class will provide to a `Celery` instance.
+
 ##### `result_backend`
 Defaults to `'db+postgresql://{0.RESULT_DB_USER}:{0.RESULT_DB_PASS}@{0.RESULT_DB_HOST}/{0.RESULT_DB_NAME}'` rendered with `self`.
 
@@ -70,37 +72,48 @@ Defaults to `True`.
 
 
 #### Internal Variables
-By convention, all variables used to construct Celery configuration should should be written entirely uppercase.
+Below are arguments and environmental variables that can be used to customize the above provided configuration. By convention, all variables used to construct Celery configuration should should be written entirely uppercase.
 
-##### `QUEUES`
+##### `QUEUES` _(provided via argument)_
 This should contain an array of names for all service-related queues used by the Cadasta Platform. These values are used to construct the `task_queues` configuration. For the purposes of routing followup tasks, it's important that every task consumer is aware of all queues available. For this reason, if a queue is used by any service worker then it should be specified within this array. It is not necessary to include the `'celery'` or `'platform.fifo'` queues. Defaults to the contents of the `DEFAULT_QUEUES` variable in the modules [`__init__.py` file](/cadasta/workertoolbox/__init__.py).
 
-##### `PLATFORM_QUEUE_NAME`
+##### `PLATFORM_QUEUE_NAME` _(provided via argument)_
 Defaults to `'platform.fifo'`.
 
 _Note: It is recommended that developers not alter this setting._
 
-##### `QUEUE_NAME_PREFIX`
-Used to populate the `queue_name_prefix` value of the connections `broker_transport_options`. Defaults to value of `QUEUE_PREFIX` environment variable if populated, `'dev'` if not.
-
-##### `RESULT_DB_USER`
-Used to populate the default `result_backend` template. Defaults to `RESULT_DB_USER` environment variable if populated, `'cadasta'` if not.
-
-##### `RESULT_DB_PASS`
-Used to populate the default `result_backend` template. Defaults to `RESULT_DB_PASS` environment variable if populated, `'cadasta'` if not.
-
-##### `RESULT_DB_HOST`
-Used to populate the default `result_backend` template. Defaults to `RESULT_DB_HOST` environment variable if populated, `'localhost'` if not.
-
-##### `RESULT_DB_PORT`
-Used to populate the default `result_backend` template. Defaults to `RESULT_DB_PORT` environment variable if populated, `'cadasta'` if not.
-
-##### `RESULT_DB_NAME`
-Used to populate the default `result_backend` template. Defaults to `RESULT_DB_PORT` environment variable if populated, `'5432'` if not.
-
-##### `CHORD_UNLOCK_MAX_RETRIES`
+##### `CHORD_UNLOCK_MAX_RETRIES` _(provided via argument)_
 Used to set the maximum number of times a `celery.chord_unlock` task may retry before giving up. See celery/celery#2725. Defaults to `43200` (meaning to give up after 6 hours, assuming the default of the task's `default_retry_delay` being set to 1 second).
 
+##### `SETUP_LOGGING` _(provided via argument)_
+Controls whether a default logging configuration should be applied to the application. At a bare minimum, this includes:
+    * creating a console log handler for `INFO` level logs
+    * a file log handlers for `INFO` level logs, saved to `app.info.log`
+    * a file log handlers for `ERROR` level logs, saved to `app.error.log`
+
+If the `OPBEAT_ORGANIZATION_ID` environment variable is set, the following logging configuration take place:
+    * add an [OpBeat](https://opbeat.com/) file handle for `ERROR` level logs
+    * add an [OpBeat](https://opbeat.com/) [task_failure signal](http://docs.celeryproject.org/en/latest/userguide/signals.html#task-failure) handler to log all faild tasks
+
+Defaults to `True`.
+
+##### `QUEUE_NAME_PREFIX` _(provided via environment variable)_
+Used to populate the `queue_name_prefix` value of the connections `broker_transport_options`. Defaults to value of `QUEUE_PREFIX` environment variable if populated, `'dev'` if not.
+
+##### `RESULT_DB_USER` _(provided via environment variable)_
+Used to populate the default `result_backend` template. Defaults to `RESULT_DB_USER` environment variable if populated, `'cadasta'` if not.
+
+##### `RESULT_DB_PASS` _(provided via environment variable)_
+Used to populate the default `result_backend` template. Defaults to `RESULT_DB_PASS` environment variable if populated, `'cadasta'` if not.
+
+##### `RESULT_DB_HOST` _(provided via environment variable)_
+Used to populate the default `result_backend` template. Defaults to `RESULT_DB_HOST` environment variable if populated, `'localhost'` if not.
+
+##### `RESULT_DB_PORT` _(provided via environment variable)_
+Used to populate the default `result_backend` template. Defaults to `RESULT_DB_PORT` environment variable if populated, `'cadasta'` if not.
+
+##### `RESULT_DB_NAME` _(provided via environment variable)_
+Used to populate the default `result_backend` template. Defaults to `RESULT_DB_PORT` environment variable if populated, `'5432'` if not.
 
 ### `cadasta.workertoolbox.setup.setup_app`
 After the Celery application is provided a configuration object, there are other steups that must follow to properly configure the application. For example, the exchanges and queues described in the configuration must be declared. This function calls those required followup procedures. Typically, it is called automatically by the [`worker_init`](http://docs.celeryproject.org/en/latest/userguide/signals.html#worker-init) signal, however it must be called manually by codebases that are run only as task producers or from within a Python shell.
@@ -137,6 +150,7 @@ python -m unittest path/to/tests.py
 ### Testing
 
 ```bash
+pip install -e .
 pip install -r requirements-test.txt
 ./runtests
 ```
