@@ -8,6 +8,61 @@ from cadasta.workertoolbox.conf import Config
 
 class TestConfigClass(unittest.TestCase):
 
+    @patch('cadasta.workertoolbox.conf.env', {'CELERY_FOO': '9876'})
+    def test_set_env_vars(self):
+        """
+        Ensure that sets any CELERY_* env var to object
+        """
+        conf = Config()
+        self.assertEqual(conf.foo, '9876')
+
+    @patch('cadasta.workertoolbox.conf.env', {'CELERY_FOO': '9876'})
+    def test_set_no_overwrite(self):
+        """
+        Ensure that sets to provide init keyword argument instead of env
+        variable or function 'default' argument
+        """
+        conf = Config(foo=1234)
+        conf.set('foo', 5678)
+        self.assertEqual(conf.foo, 1234)
+
+    @patch('cadasta.workertoolbox.conf.env', {})
+    def test_set_uses_default(self):
+        """
+        Ensure uses function 'default' argument if no env or preset value
+        """
+        conf = Config()
+        conf.set('foo', 1234)
+        self.assertEqual(conf.foo, 1234)
+
+    def test_set_uses_env(self):
+        """
+        Ensure that if the 'default' is a string, won't evaluate env variable
+        """
+        conf = Config()
+        with patch('cadasta.workertoolbox.conf.env', {'CELERY_FOO': 'False'}):
+            conf.set('foo', True)
+        self.assertEqual(conf.foo, False)
+
+    def test_set_no_eval(self):
+        """
+        Ensure that if the 'default' is a string, won't evaluate env variable
+        """
+        conf = Config()
+        with patch('cadasta.workertoolbox.conf.env', {'CELERY_FOO': 'False'}):
+            conf.set('foo', 'True')
+        self.assertEqual(conf.foo, 'False')
+
+    def test_set_bad_env_val(self):
+        """
+        Ensure error is thrown if the 'default' is a string, and env
+        variable is not evaluatable value
+        """
+        conf = Config()
+        with patch('cadasta.workertoolbox.conf.env', {'CELERY_FOO': ''}):
+            with self.assertRaises(ValueError):
+                conf.set('foo', True)
+
     def test_override(self):
         """ Ensure default params can be overridden """
         conf = Config(broker_transport='foo')
@@ -22,13 +77,10 @@ class TestConfigClass(unittest.TestCase):
         self.assertEqual(
             Config(QUEUES=['foo']).QUEUES,
             ['foo'])
-        self.assertEqual(
-            Config(['bar']).QUEUES,
-            ['bar'])
 
     def test_backend_default(self):
         self.assertEqual(
-            Config(QUEUES=[]).result_backend,
+            Config().result_backend,
             'db+postgresql://worker:cadasta@localhost:5432/cadasta')
 
     def test_backend_custom(self):

@@ -16,7 +16,7 @@ A collection of helpers to assist in quickly building asynchronous workers for t
 ### `cadasta.workertoolbox.conf.Config`
 The `Config` class was built to simplify configuring Celery settings, helping to ensure that all workers adhere to the architecture requirements of the Cadasta asynchronous system. It essentially offers a diff between Celery's default configuration and the configuration required by our system. It is the aim of the class to not require much customization on the part of the developer, however some customization may be needed when altering configuration between environments (e.g. if dev settings vary greatly from prod settings).
 
-Any [Celery setting](http://docs.celeryproject.org/en/v4.0.2/userguide/configuration.html#new-lowercase-settings) may be submitted. It is internal convention that we use the Celery's newer lowercase settings rather than their older uppercase counterparts. This will ensure that they are displayed when calling `repr` on the `Conf` instance.
+Any [Celery setting](http://docs.celeryproject.org/en/v4.0.2/userguide/configuration.html#new-lowercase-settings) may be submitted via keyword argument or via environment variable. Arguments submitted via keyword argument are expected to comply with Celery's newer lowercase settings rather than their older uppercase counterparts. Arguments provided by environment variable should be uppercase and be prepended with the prefix `CELERY_` (e.g. to set the `task_track_started` value, an environment variable of `CELERY_TASK_TRACK_STARTED` should be set). The prefix can be customized with a provided `ENV_PREFIX` keyword argument or `CELERY_ENV_PREFIX` environment variable. If both a keyword argument and environment variable are provided for a setting, the keyword argument takes precedence. Settings with non-string defaults will have the environment variable values run through [`ast.literal_eval`](https://docs.python.org/3/library/ast.html#ast.literal_eval), supporting Python native types like `bool` or `tuple`. Only lowercase settings are shown when calling `repr` on the `Conf` instance.
 
 Once applied, all settings (and internal variables) are available on the Celery `app` instance's `app.conf` object.
 
@@ -74,7 +74,7 @@ Defaults to `True`.
 #### Internal Variables
 Below are arguments and environmental variables that can be used to customize the above provided configuration. By convention, all variables used to construct Celery configuration should should be written entirely uppercase. Unless otherwise stated, all variables may be specified via argument or environment variable (with preference given to argument).
 
-##### `QUEUES` _(provided only via argument)_
+##### `QUEUES`
 This should contain an array of names for all service-related queues used by the Cadasta Platform. These values are used to construct the `task_queues` configuration. For the purposes of routing followup tasks, it's important that every task consumer is aware of all queues available. For this reason, if a queue is used by any service worker then it should be specified within this array. It is not necessary to include the `'celery'` or `'platform.fifo'` queues. Defaults to the contents of the `DEFAULT_QUEUES` variable in the modules [`__init__.py` file](/cadasta/workertoolbox/__init__.py).
 
 ##### `PLATFORM_QUEUE_NAME`
@@ -85,7 +85,7 @@ _Note: It is recommended that developers not alter this setting._
 ##### `CHORD_UNLOCK_MAX_RETRIES`
 Used to set the maximum number of times a `celery.chord_unlock` task may retry before giving up. See celery/celery#2725. Defaults to `43200` (meaning to give up after 6 hours, assuming the default of the task's `default_retry_delay` being set to 1 second).
 
-##### `SETUP_LOGGING` _(provided only via argument)_
+##### `SETUP_LOGGING`
 Controls whether a default logging configuration should be applied to the application. At a bare minimum, this includes:
 
 * creating a console log handler for `INFO` level logs
