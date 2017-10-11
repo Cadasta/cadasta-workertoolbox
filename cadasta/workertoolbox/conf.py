@@ -1,3 +1,4 @@
+from ast import literal_eval
 from os import environ as env
 import pprint
 import logging
@@ -57,46 +58,47 @@ DEFAULT_LOGGING_CONFIG = {
 
 
 class Config:
-
-    def __init__(self, QUEUES=DEFAULT_QUEUES, imports=('app.tasks',),
-                 SETUP_LOGGING=True, **kw):
+    def __init__(self, **kw):
         """
         Object to manage Celery application configuration.
         """
-        self.QUEUES = QUEUES
-        self.imports = imports
+        self.ENV_PREFIX = kw.get(
+            'ENV_PREFIX', env.get('CELERY_ENV_PREFIX', 'CELERY_'))
 
         # Assign any keyword argument to object
         for k, v in kw.items():
             setattr(self, k, v)
 
         # Configure Broker
-        self.QUEUE_PREFIX = self.args_or_env('QUEUE_PREFIX', 'dev')
-        self.broker_transport = self.args_or_env('broker_transport', 'sqs')
-        self.broker_transport_options = getattr(
-            self, 'broker_transport_options', {
+        self.set('QUEUE_PREFIX', 'dev')
+        self.set('broker_transport', 'sqs')
+        self.set('broker_transport_options', {
                 'region': 'us-west-2',
                 'queue_name_prefix': '{}-'.format(self.QUEUE_PREFIX),
 
-                'wait_time_seconds': 20,  # Ensure long-polling for SQS messages            # NOQA
-                'visibility_timeout': 20,  # Wait up to 20 seconds for msg ack from worker  # NOQA
-                'max_retries': 1,  # Ensure error is raised if cannot connect to SQS twice  # NOQA
-                'interval_start': 0,  # Retry immediately if cannot connect to SQS once     # NOQA
+                # Ensure long-polling for SQS messages
+                'wait_time_seconds': 20,
+                # Wait up to 20 seconds for msg ack from worker (if
+                # creating queue)
+                'visibility_timeout': 20,
+                # Retry immediately if cannot connect to SQS once
+                'interval_start': 0,
+                # Ensure error is raised if cannot connect to SQS twice
+                'max_retries': 1,
             })
 
         # Setup Logging
-        if SETUP_LOGGING:
+        self.set('task_track_started', True)
+        if self.set('SETUP_LOGGING', True):
             self.setup_default_logging()
-            self.worker_hijack_root_logger = False
 
         # Configure Result Backend
-        self.task_track_started = True
-        self.RESULT_DB_USER = self.args_or_env('RESULT_DB_USER', 'worker')
-        self.RESULT_DB_PASS = self.args_or_env('RESULT_DB_PASS', 'cadasta')
-        self.RESULT_DB_HOST = self.args_or_env('RESULT_DB_HOST', 'localhost')
-        self.RESULT_DB_NAME = self.args_or_env('RESULT_DB_NAME', 'cadasta')
-        self.RESULT_DB_PORT = self.args_or_env('RESULT_DB_PORT', '5432')
-        self.result_backend = self.args_or_env('result_backend', (
+        self.set('RESULT_DB_USER', 'worker')
+        self.set('RESULT_DB_PASS', 'cadasta')
+        self.set('RESULT_DB_HOST', 'localhost')
+        self.set('RESULT_DB_NAME', 'cadasta')
+        self.set('RESULT_DB_PORT', '5432')
+        self.set('result_backend', (
             'db+postgresql://{0.RESULT_DB_USER}:{0.RESULT_DB_PASS}@'
             '{0.RESULT_DB_HOST}:{0.RESULT_DB_PORT}/{0.RESULT_DB_NAME}'))
         try:
@@ -107,22 +109,32 @@ class Config:
                 self.result_backend)
 
         # Configure Routes & Exchanges
-        self.task_default_exchange = 'task_exchange'
-        self.task_default_exchange_type = 'topic'
-        if not hasattr(self, 'task_routes'):
-            self.task_routes = self._route_task
+        self.set('task_default_exchange', 'task_exchange')
+        self.set('task_default_exchange_type', 'topic')
+        self.set('task_routes', self._route_task, from_env=False)
 
         # Configure Queues
-        self.PLATFORM_QUEUE_NAME = self.args_or_env(
-            'PLATFORM_QUEUE_NAME', 'platform.fifo')
+        self.set('QUEUES', DEFAULT_QUEUES)
+        self.set('PLATFORM_QUEUE_NAME', 'platform.fifo')
         if not hasattr(self, 'task_queues'):
             self.task_queues = self._generate_queues(
                 self.QUEUES, self._default_exchange_obj,
                 self.PLATFORM_QUEUE_NAME)
 
         # Configure Tasks
-        self.CHORD_UNLOCK_MAX_RETRIES = int(self.args_or_env(
-            'CHORD_UNLOCK_MAX_RETRIES', 60 * 60 * 6))  # 6hrs
+        self.set('imports', ('app.tasks',))
+        self.set('CHORD_UNLOCK_MAX_RETRIES', 60 * 60 * 6)  # 6 hrs
+
+        # Assign any other matching env variables to object
+        for k, v in env.items():
+            if not k.startswith(self.ENV_PREFIX):
+                continue
+            key = k.split(self.ENV_PREFIX, 1)[1].lower()
+            if hasattr(self, key):
+                continue
+            if key in ('log_level', 'log_file'):  # Ignore Celery-set env vars
+                continue
+            setattr(self, key, v)
 
     def __repr__(self):
         attr_str = pprint.pformat(self.to_dict())
@@ -136,12 +148,31 @@ class Config:
                 not callable(getattr(self, k)))
         }
 
-    def args_or_env(self, keyword, default=None):
+    def set(self, keyword, default, from_env=True):
+        """
+        Set value on self if not already set. If unset, attempt to
+        retrieve from environment variable of same name (unless disabled
+        via 'from_env'). If 'default' value is not a string, evaluate
+        environment variable as a Python type. If no env variables are
+        found, fallback to 'default' value.
+        """
+        env_key = '{}{}'.format(self.ENV_PREFIX, keyword.upper())
         if hasattr(self, keyword):
             return getattr(self, keyword)
-        return env.get(keyword, default)
+        value = default
+        if from_env and (env_key in env):
+            env_val = env.get(env_key)
+            should_eval = not isinstance(default, str)
+            try:
+                value = literal_eval(env_val) if should_eval else env_val
+            except (ValueError, SyntaxError):
+                raise ValueError("Unable to cast %r to %r" % (
+                    env_val, type.__name__))
+        setattr(self, keyword, value)
+        return getattr(self, keyword)
 
     def setup_default_logging(self, opbeat_client=None):
+        self.set('worker_hijack_root_logger', False)
         self.setup_log_files()
         if opbeat_client or env.get('OPBEAT_ORGANIZATION_ID'):
             self._opbeat_client = opbeat_client or Client()
