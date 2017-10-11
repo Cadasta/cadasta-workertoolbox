@@ -17,6 +17,16 @@ class TestConfigClass(unittest.TestCase):
         self.assertEqual(conf.foo, '9876')
 
     @patch('cadasta.workertoolbox.conf.env', {'CELERY_FOO': '9876'})
+    def test_set_no_overwrite_uppercase(self):
+        """
+        Ensure that any CELERY_* env var won't be set to object if
+        uppercase version already exists on object.
+        """
+        conf = Config(FOO='1234')
+        self.assertFalse(hasattr(conf, 'foo'))
+        self.assertEqual(conf.FOO, '1234')
+
+    @patch('cadasta.workertoolbox.conf.env', {'CELERY_FOO': '9876'})
     def test_set_no_overwrite(self):
         """
         Ensure that sets to provide init keyword argument instead of env

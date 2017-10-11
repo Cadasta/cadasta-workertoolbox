@@ -130,7 +130,7 @@ class Config:
             if not k.startswith(self.ENV_PREFIX):
                 continue
             key = k.split(self.ENV_PREFIX, 1)[1].lower()
-            if hasattr(self, key):
+            if hasattr(self, key.lower()) or hasattr(self, key.upper()):
                 continue
             if key in ('log_level', 'log_file'):  # Ignore Celery-set env vars
                 continue
