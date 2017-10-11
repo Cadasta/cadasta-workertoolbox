@@ -85,12 +85,12 @@ class Config:
             })
 
         # Setup Logging
-        self.task_track_started = True
         if SETUP_LOGGING:
             self.setup_default_logging()
             self.worker_hijack_root_logger = False
 
         # Configure Result Backend
+        self.task_track_started = True
         self.RESULT_DB_USER = self.args_or_env('RESULT_DB_USER', 'worker')
         self.RESULT_DB_PASS = self.args_or_env('RESULT_DB_PASS', 'cadasta')
         self.RESULT_DB_HOST = self.args_or_env('RESULT_DB_HOST', 'localhost')
