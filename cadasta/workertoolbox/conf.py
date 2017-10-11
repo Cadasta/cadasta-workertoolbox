@@ -73,15 +73,16 @@ class Config:
         # Configure Broker
         self.QUEUE_PREFIX = self.args_or_env('QUEUE_PREFIX', 'dev')
         self.broker_transport = self.args_or_env('broker_transport', 'sqs')
-        self.broker_transport_options = {
-            'region': 'us-west-2',
-            'queue_name_prefix': '{}-'.format(self.QUEUE_PREFIX),
+        self.broker_transport_options = getattr(
+            self, 'broker_transport_options', {
+                'region': 'us-west-2',
+                'queue_name_prefix': '{}-'.format(self.QUEUE_PREFIX),
 
-            'wait_time_seconds': 20,  # Ensure long-polling for SQS messages
-            'visibility_timeout': 20,  # Wait up to 20 seconds for msg ack from worker  # NOQA
-            'max_retries': 1,  # Ensure error is raised if cannot connect to SQS twice  # NOQA
-            'interval_start': 0,  # Retry immediately if cannot connect to SQS once     # NOQA
-        }
+                'wait_time_seconds': 20,  # Ensure long-polling for SQS messages            # NOQA
+                'visibility_timeout': 20,  # Wait up to 20 seconds for msg ack from worker  # NOQA
+                'max_retries': 1,  # Ensure error is raised if cannot connect to SQS twice  # NOQA
+                'interval_start': 0,  # Retry immediately if cannot connect to SQS once     # NOQA
+            })
 
         # Setup Logging
         self.task_track_started = True
@@ -120,8 +121,8 @@ class Config:
                 self.PLATFORM_QUEUE_NAME)
 
         # Configure Tasks
-        self.CHORD_UNLOCK_MAX_RETRIES = self.args_or_env(
-            'CHORD_UNLOCK_MAX_RETRIES', 60 * 60 * 6)  # 6hrs
+        self.CHORD_UNLOCK_MAX_RETRIES = int(self.args_or_env(
+            'CHORD_UNLOCK_MAX_RETRIES', 60 * 60 * 6))  # 6hrs
 
     def __repr__(self):
         attr_str = pprint.pformat(self.to_dict())
