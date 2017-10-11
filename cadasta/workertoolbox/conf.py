@@ -57,34 +57,6 @@ DEFAULT_LOGGING_CONFIG = {
 
 
 class Config:
-    # Broker
-    QUEUE_PREFIX = env.get('QUEUE_PREFIX', 'dev')
-    broker_transport = 'sqs'
-    broker_transport_options = {
-        'region': 'us-west-2',
-        'queue_name_prefix': '{}-'.format(QUEUE_PREFIX)
-    }
-
-    # Results
-    RESULT_DB_USER = env.get('RESULT_DB_USER', 'worker')
-    RESULT_DB_PASS = env.get('RESULT_DB_PASS', 'cadasta')
-    RESULT_DB_HOST = env.get('RESULT_DB_HOST', 'localhost')
-    RESULT_DB_NAME = env.get('RESULT_DB_NAME', 'cadasta')
-    RESULT_DB_PORT = env.get('RESULT_DB_PORT', '5432')
-    result_backend = (
-        'db+postgresql://{0.RESULT_DB_USER}:{0.RESULT_DB_PASS}@'
-        '{0.RESULT_DB_HOST}:{0.RESULT_DB_PORT}/{0.RESULT_DB_NAME}')
-    task_track_started = True
-
-    # Exchanges
-    task_default_exchange = 'task_exchange'
-    task_default_exchange_type = 'topic'
-
-    # Queues
-    PLATFORM_QUEUE_NAME = 'platform.fifo'
-
-    # Tasks
-    CHORD_UNLOCK_MAX_RETRIES = 60 * 60 * 6  # 6hrs
 
     def __init__(self, QUEUES=DEFAULT_QUEUES, imports=('app.tasks',),
                  SETUP_LOGGING=True, **kw):
@@ -94,13 +66,38 @@ class Config:
         self.QUEUES = QUEUES
         self.imports = imports
 
+        # Assign any keyword argument to object
         for k, v in kw.items():
             setattr(self, k, v)
 
+        # Configure Broker
+        self.QUEUE_PREFIX = self.args_or_env('QUEUE_PREFIX', 'dev')
+        self.broker_transport = self.args_or_env('broker_transport', 'sqs')
+        self.broker_transport_options = {
+            'region': 'us-west-2',
+            'queue_name_prefix': '{}-'.format(self.QUEUE_PREFIX),
+
+            'wait_time_seconds': 20,  # Ensure long-polling for SQS messages
+            'visibility_timeout': 20,  # Wait up to 20 seconds for msg ack from worker  # NOQA
+            'max_retries': 1,  # Ensure error is raised if cannot connect to SQS twice  # NOQA
+            'interval_start': 0,  # Retry immediately if cannot connect to SQS once     # NOQA
+        }
+
+        # Setup Logging
+        self.task_track_started = True
         if SETUP_LOGGING:
             self.setup_default_logging()
             self.worker_hijack_root_logger = False
 
+        # Configure Result Backend
+        self.RESULT_DB_USER = self.args_or_env('RESULT_DB_USER', 'worker')
+        self.RESULT_DB_PASS = self.args_or_env('RESULT_DB_PASS', 'cadasta')
+        self.RESULT_DB_HOST = self.args_or_env('RESULT_DB_HOST', 'localhost')
+        self.RESULT_DB_NAME = self.args_or_env('RESULT_DB_NAME', 'cadasta')
+        self.RESULT_DB_PORT = self.args_or_env('RESULT_DB_PORT', '5432')
+        self.result_backend = self.args_or_env('result_backend', (
+            'db+postgresql://{0.RESULT_DB_USER}:{0.RESULT_DB_PASS}@'
+            '{0.RESULT_DB_HOST}:{0.RESULT_DB_PORT}/{0.RESULT_DB_NAME}'))
         try:
             self.result_backend = self.result_backend.format(self)
         except ValueError:
@@ -108,13 +105,23 @@ class Config:
                 "Unable to render 'result_backend' value: %r" %
                 self.result_backend)
 
+        # Configure Routes & Exchanges
+        self.task_default_exchange = 'task_exchange'
+        self.task_default_exchange_type = 'topic'
+        if not hasattr(self, 'task_routes'):
+            self.task_routes = self._route_task
+
+        # Configure Queues
+        self.PLATFORM_QUEUE_NAME = self.args_or_env(
+            'PLATFORM_QUEUE_NAME', 'platform.fifo')
         if not hasattr(self, 'task_queues'):
             self.task_queues = self._generate_queues(
                 self.QUEUES, self._default_exchange_obj,
                 self.PLATFORM_QUEUE_NAME)
 
-        if not hasattr(self, 'task_routes'):
-            self.task_routes = self._route_task
+        # Configure Tasks
+        self.CHORD_UNLOCK_MAX_RETRIES = self.args_or_env(
+            'CHORD_UNLOCK_MAX_RETRIES', 60 * 60 * 6)  # 6hrs
 
     def __repr__(self):
         attr_str = pprint.pformat(self.to_dict())
@@ -127,6 +134,11 @@ class Config:
             if (k.islower() and not k.startswith('_') and
                 not callable(getattr(self, k)))
         }
+
+    def args_or_env(self, keyword, default=None):
+        if hasattr(self, keyword):
+            return getattr(self, keyword)
+        return env.get(keyword, default)
 
     def setup_default_logging(self, opbeat_client=None):
         self.setup_log_files()

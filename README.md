@@ -72,20 +72,20 @@ Defaults to `True`.
 
 
 #### Internal Variables
-Below are arguments and environmental variables that can be used to customize the above provided configuration. By convention, all variables used to construct Celery configuration should should be written entirely uppercase.
+Below are arguments and environmental variables that can be used to customize the above provided configuration. By convention, all variables used to construct Celery configuration should should be written entirely uppercase. Unless otherwise stated, all variables may be specified via argument or environment variable (with preference given to argument).
 
-##### `QUEUES` _(provided via argument)_
+##### `QUEUES` _(provided only via argument)_
 This should contain an array of names for all service-related queues used by the Cadasta Platform. These values are used to construct the `task_queues` configuration. For the purposes of routing followup tasks, it's important that every task consumer is aware of all queues available. For this reason, if a queue is used by any service worker then it should be specified within this array. It is not necessary to include the `'celery'` or `'platform.fifo'` queues. Defaults to the contents of the `DEFAULT_QUEUES` variable in the modules [`__init__.py` file](/cadasta/workertoolbox/__init__.py).
 
-##### `PLATFORM_QUEUE_NAME` _(provided via argument)_
+##### `PLATFORM_QUEUE_NAME`
 Defaults to `'platform.fifo'`.
 
 _Note: It is recommended that developers not alter this setting._
 
-##### `CHORD_UNLOCK_MAX_RETRIES` _(provided via argument)_
+##### `CHORD_UNLOCK_MAX_RETRIES`
 Used to set the maximum number of times a `celery.chord_unlock` task may retry before giving up. See celery/celery#2725. Defaults to `43200` (meaning to give up after 6 hours, assuming the default of the task's `default_retry_delay` being set to 1 second).
 
-##### `SETUP_LOGGING` _(provided via argument)_
+##### `SETUP_LOGGING` _(provided only via argument)_
 Controls whether a default logging configuration should be applied to the application. At a bare minimum, this includes:
 
 * creating a console log handler for `INFO` level logs
@@ -99,22 +99,22 @@ If the `OPBEAT_ORGANIZATION_ID` environment variable is set, the following loggi
 
 Defaults to `True`.
 
-##### `QUEUE_PREFIX` _(provided via environment variable)_
+##### `QUEUE_PREFIX`
 Used to populate the `queue_name_prefix` value of the connections `broker_transport_options`. Defaults to value of `QUEUE_PREFIX` environment variable if populated, `'dev'` if not.
 
-##### `RESULT_DB_USER` _(provided via environment variable)_
+##### `RESULT_DB_USER`
 Used to populate the default `result_backend` template. Defaults to `RESULT_DB_USER` environment variable if populated, `'cadasta'` if not.
 
-##### `RESULT_DB_PASS` _(provided via environment variable)_
+##### `RESULT_DB_PASS`
 Used to populate the default `result_backend` template. Defaults to `RESULT_DB_PASS` environment variable if populated, `'cadasta'` if not.
 
-##### `RESULT_DB_HOST` _(provided via environment variable)_
+##### `RESULT_DB_HOST`
 Used to populate the default `result_backend` template. Defaults to `RESULT_DB_HOST` environment variable if populated, `'localhost'` if not.
 
-##### `RESULT_DB_PORT` _(provided via environment variable)_
+##### `RESULT_DB_PORT`
 Used to populate the default `result_backend` template. Defaults to `RESULT_DB_PORT` environment variable if populated, `'cadasta'` if not.
 
-##### `RESULT_DB_NAME` _(provided via environment variable)_
+##### `RESULT_DB_NAME`
 Used to populate the default `result_backend` template. Defaults to `RESULT_DB_NAME` environment variable if populated, `'5432'` if not.
 
 ### `cadasta.workertoolbox.setup.setup_app`
