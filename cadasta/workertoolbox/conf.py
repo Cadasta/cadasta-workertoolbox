@@ -89,7 +89,7 @@ class Config:
 
         # Setup Logging
         self.set('task_track_started', True)
-        if self.set('SETUP_LOGGING', True):
+        if self.set('SETUP_LOGGING', False):
             self.setup_default_logging()
 
         # Configure Result Backend

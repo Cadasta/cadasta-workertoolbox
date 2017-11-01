@@ -128,7 +128,7 @@ class TestConfigClass(unittest.TestCase):
     @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_task_signal')
     def test_setup_opbeat_tools(self, task_signal, log_handler, Client):
         """ Ensure opbeat logging is called if env variable is set """
-        Config()
+        Config(SETUP_LOGGING=True)
         Client.assert_called_once_with()
         task_signal.assert_called_once_with(Client.return_value)
         log_handler.assert_called_once_with(Client.return_value)
@@ -152,7 +152,9 @@ class TestConfigClass(unittest.TestCase):
     @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_log_handler')
     @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_task_signal')
     def test_setup_opbeat_tools_not_called(self, task_signal, log_handler, Client):
-        """ Ensure opbeat logging is called if env variable is set """
+        """
+        Ensure opbeat logging is not called if OPBEAT env variabels are unset
+        """
         Config()
         self.assertFalse(Client.called)
         self.assertFalse(task_signal.called)
