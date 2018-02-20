@@ -89,8 +89,18 @@ class Config:
 
         # Setup Logging
         self.set('task_track_started', True)
-        if self.set('SETUP_LOGGING', True):
-            self.setup_default_logging()
+        if self.set('SETUP_FILE_LOGGING', False):
+            self.setup_file_logging()
+
+        opbeat_env_vars = [
+            env.get('OPBEAT_ORGANIZATION_ID'), env.get('OPBEAT_APP_ID'),
+            env.get('OPBEAT_SECRET_TOKEN'),
+        ]
+        if self.set('SETUP_OPBEAT_LOGGING', all(opbeat_env_vars)):
+            assert all(opbeat_env_vars), (
+                'Not all required env variables for Opbeat logging are set'
+            )
+            self.setup_opbeat_logging()
 
         # Configure Result Backend
         self.set('RESULT_DB_USER', 'worker')
@@ -171,17 +181,14 @@ class Config:
         setattr(self, keyword, value)
         return getattr(self, keyword)
 
-    def setup_default_logging(self, opbeat_client=None):
+    def setup_file_logging(self, config=DEFAULT_LOGGING_CONFIG):
         self.set('worker_hijack_root_logger', False)
-        self.setup_log_files()
-        if opbeat_client or env.get('OPBEAT_ORGANIZATION_ID'):
-            self._opbeat_client = opbeat_client or Client()
-            self.setup_opbeat_log_handler(self._opbeat_client)
-            self.setup_opbeat_task_signal(self._opbeat_client)
-
-    @staticmethod
-    def setup_log_files(config=DEFAULT_LOGGING_CONFIG):
         logging.config.dictConfig(config)
+
+    def setup_opbeat_logging(self, opbeat_client=None):
+        self._opbeat_client = opbeat_client or Client()
+        self.setup_opbeat_log_handler(self._opbeat_client)
+        self.setup_opbeat_task_signal(self._opbeat_client)
 
     @staticmethod
     def setup_opbeat_log_handler(client, logger='', level=logging.ERROR):

@@ -85,19 +85,21 @@ _Note: It is recommended that developers not alter this setting._
 ##### `CHORD_UNLOCK_MAX_RETRIES`
 Used to set the maximum number of times a `celery.chord_unlock` task may retry before giving up. See celery/celery#2725. Defaults to `43200` (meaning to give up after 6 hours, assuming the default of the task's `default_retry_delay` being set to 1 second).
 
-##### `SETUP_LOGGING`
+##### `SETUP_FILE_LOGGING`
 Controls whether a default logging configuration should be applied to the application. At a bare minimum, this includes:
 
 * creating a console log handler for `INFO` level logs
 * a file log handlers for `INFO` level logs, saved to `app.info.log`
 * a file log handlers for `ERROR` level logs, saved to `app.error.log`
 
-If the `OPBEAT_ORGANIZATION_ID` environment variable is set, the following logging configuration take place:
+_Note: This may be useful for debugging, however in production it is recommended to simply log to stdout (as is the default setup of Celery)_
+
+##### `SETUP_OPBEAT_LOGGING`
+Defaults to `True` if all required environment variables are set, otherwise `False`.
+Controls whether [Opbeat](https://opbeat.com/) logging handlers should be setup application. The following environment variables are required for Opbeat logging to be setup automatically: `OPBEAT_ORGANIZATION_ID`, `OPBEAT_APP_ID`, `OPBEAT_SECRET_TOKEN`. If all conditions are met, the following will be setup:
 
 * add an [OpBeat](https://opbeat.com/) file handle for `ERROR` level logs
 * add an [OpBeat](https://opbeat.com/) [task_failure signal](http://docs.celeryproject.org/en/latest/userguide/signals.html#task-failure) handler to log all faild tasks
-
-Defaults to `True`.
 
 ##### `QUEUE_PREFIX`
 Used to populate the `queue_name_prefix` value of the connections `broker_transport_options`. Defaults to `'dev'`.

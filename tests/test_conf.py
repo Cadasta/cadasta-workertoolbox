@@ -122,7 +122,23 @@ class TestConfigClass(unittest.TestCase):
         conf = Config()
         self.assertTrue(isinstance(conf.CHORD_UNLOCK_MAX_RETRIES, int))
 
-    @patch('cadasta.workertoolbox.conf.env', {'OPBEAT_ORGANIZATION_ID': 123})
+    @patch('cadasta.workertoolbox.conf.Config.setup_file_logging')
+    def test_default_no_setup_file_logging(self, setup_file_logging):
+        Config()
+        self.assertFalse(setup_file_logging.called)
+
+    @patch('cadasta.workertoolbox.conf.Config.setup_file_logging')
+    def test_setup_file_logging_argument(self, setup_file_logging):
+        Config(SETUP_FILE_LOGGING=True)
+        setup_file_logging.assert_called_once_with()
+
+    @patch('cadasta.workertoolbox.conf.logging')
+    def test_setup_file_logging(self, logging):
+        my_logging_config = {}
+        Config(SETUP_FILE_LOGGING=False).setup_file_logging(my_logging_config)
+        logging.config.dictConfig.assert_called_once_with(my_logging_config)
+
+    @patch('cadasta.workertoolbox.conf.env', {'OPBEAT_ORGANIZATION_ID': 123, 'OPBEAT_APP_ID': 234, 'OPBEAT_SECRET_TOKEN': 456})
     @patch('cadasta.workertoolbox.conf.Client')
     @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_log_handler')
     @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_task_signal')
@@ -133,7 +149,7 @@ class TestConfigClass(unittest.TestCase):
         task_signal.assert_called_once_with(Client.return_value)
         log_handler.assert_called_once_with(Client.return_value)
 
-    @patch('cadasta.workertoolbox.conf.env', {'OPBEAT_ORGANIZATION_ID': 123})
+    @patch('cadasta.workertoolbox.conf.env', {'OPBEAT_ORGANIZATION_ID': 123, 'OPBEAT_APP_ID': 234, 'OPBEAT_SECRET_TOKEN': 456})
     @patch('cadasta.workertoolbox.conf.Client')
     @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_log_handler')
     @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_task_signal')
@@ -142,7 +158,7 @@ class TestConfigClass(unittest.TestCase):
         Ensure opbeat logging is not called if env variable is set but setup
         is set to false
         """
-        Config(SETUP_LOGGING=False)
+        Config(SETUP_OPBEAT_LOGGING=False)
         self.assertFalse(Client.called)
         self.assertFalse(task_signal.called)
         self.assertFalse(log_handler.called)
@@ -152,7 +168,9 @@ class TestConfigClass(unittest.TestCase):
     @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_log_handler')
     @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_task_signal')
     def test_setup_opbeat_tools_not_called(self, task_signal, log_handler, Client):
-        """ Ensure opbeat logging is called if env variable is set """
+        """
+        Ensure opbeat logging is not called if OPBEAT env variabels are unset
+        """
         Config()
         self.assertFalse(Client.called)
         self.assertFalse(task_signal.called)
