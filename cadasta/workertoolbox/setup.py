@@ -42,7 +42,7 @@ def setup_app(app, throw=True):
         for func in SETUP_FUNCS:
             try:
                 func(app)
-            except:
+            except Exception:
                 success = False
                 if throw:
                     raise
