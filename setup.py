@@ -13,11 +13,11 @@ CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
 ]
 REQUIREMENTS = [
-    'boto3>=1.4.4,<=1.5',
+    'boto3>=1.6,<1.7',
     'celery>=4.1.0,<=4.2',
     'kombu>=4.1.0,<=4.2',
     'psycopg2>=2.7.1',
-    'SQLAlchemy>=1.1.11,<=1.2',
+    'SQLAlchemy>=1.2,<1.3',
     'mock>=2.0.0',
     'opbeat>=3.5.2',
     'pycurl>=7.43.0,<=7.44',
