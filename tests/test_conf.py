@@ -1,7 +1,8 @@
+import logging
 import unittest
 from mock import patch
 
-from opbeat import Client
+from raven import Client
 
 from cadasta.workertoolbox.conf import Config
 
@@ -138,71 +139,40 @@ class TestConfigClass(unittest.TestCase):
         Config(SETUP_FILE_LOGGING=False).setup_file_logging(my_logging_config)
         logging.config.dictConfig.assert_called_once_with(my_logging_config)
 
-    @patch('cadasta.workertoolbox.conf.env', {'OPBEAT_ORGANIZATION_ID': 123, 'OPBEAT_APP_ID': 234, 'OPBEAT_SECRET_TOKEN': 456})
+    @patch('cadasta.workertoolbox.conf.env', {'SENTRY_DSN': 'https://example.com'})
     @patch('cadasta.workertoolbox.conf.Client')
-    @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_log_handler')
-    @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_task_signal')
-    def test_setup_opbeat_tools(self, task_signal, log_handler, Client):
-        """ Ensure opbeat logging is called if env variable is set """
+    @patch('cadasta.workertoolbox.conf.register_logger_signal')
+    @patch('cadasta.workertoolbox.conf.register_signal')
+    def test_setup_sentry_tools(self, register_signal, logger_signal, Client):
+        """ Ensure sentry logging is called if env variable is set """
         Config()
-        Client.assert_called_once_with()
-        task_signal.assert_called_once_with(Client.return_value)
-        log_handler.assert_called_once_with(Client.return_value)
+        Client.assert_called_once_with('https://example.com')
+        logger_signal.assert_called_once_with(Client.return_value, loglevel=logging.ERROR)
+        register_signal.assert_called_once_with(Client.return_value)
 
-    @patch('cadasta.workertoolbox.conf.env', {'OPBEAT_ORGANIZATION_ID': 123, 'OPBEAT_APP_ID': 234, 'OPBEAT_SECRET_TOKEN': 456})
+    @patch('cadasta.workertoolbox.conf.env', {'SENTRY_DSN': 'https://example.com'})
     @patch('cadasta.workertoolbox.conf.Client')
-    @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_log_handler')
-    @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_task_signal')
-    def test_setup_opbeat_tools_override(self, task_signal, log_handler, Client):
+    @patch('cadasta.workertoolbox.conf.register_logger_signal')
+    @patch('cadasta.workertoolbox.conf.register_signal')
+    def test_setup_sentry_tools_override(self, register_signal, logger_signal, Client):
         """
-        Ensure opbeat logging is not called if env variable is set but setup
+        Ensure sentry logging is not called if env variable is set but setup
         is set to false
         """
-        Config(SETUP_OPBEAT_LOGGING=False)
+        Config(SETUP_SENTRY_LOGGING=False)
         self.assertFalse(Client.called)
-        self.assertFalse(task_signal.called)
-        self.assertFalse(log_handler.called)
+        self.assertFalse(register_signal.called)
+        self.assertFalse(logger_signal.called)
 
     @patch('cadasta.workertoolbox.conf.env', {})
     @patch('cadasta.workertoolbox.conf.Client')
-    @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_log_handler')
-    @patch('cadasta.workertoolbox.conf.Config.setup_opbeat_task_signal')
-    def test_setup_opbeat_tools_not_called(self, task_signal, log_handler, Client):
+    @patch('cadasta.workertoolbox.conf.register_logger_signal')
+    @patch('cadasta.workertoolbox.conf.register_signal')
+    def test_setup_sentry_tools_not_called(self, register_signal, logger_signal, Client):
         """
-        Ensure opbeat logging is not called if OPBEAT env variabels are unset
+        Ensure sentry logging is not called if sentry env variabels are unset
         """
         Config()
         self.assertFalse(Client.called)
-        self.assertFalse(task_signal.called)
-        self.assertFalse(log_handler.called)
-
-    @patch('cadasta.workertoolbox.conf.logging')
-    def test_setup_opbeat_log_handler(self, logging):
-        """ Ensure opbeat logging handler adds handler to base logger """
-        client = Client()
-        Config.setup_opbeat_log_handler(client)
-        logging.getLogger.assert_called_once_with('')
-        logger = logging.getLogger.return_value
-        self.assertEqual(logger.addHandler.call_count, 1)
-        self.assertEqual(
-            logger.addHandler.call_args_list[0][0][0].__class__.__name__,
-            'OpbeatHandler')
-
-    @patch('cadasta.workertoolbox.conf.logging')
-    def test_setup_opbeat_log_handler_custom(self, logging):
-        """ Ensure opbeat logging handler adds handler to custom logger """
-        client = Client()
-        Config.setup_opbeat_log_handler(client, 'foo')
-        logging.getLogger.assert_called_once_with('foo')
-        logger = logging.getLogger.return_value
-        self.assertEqual(logger.addHandler.call_count, 1)
-        self.assertEqual(
-            logger.addHandler.call_args_list[0][0][0].__class__.__name__,
-            'OpbeatHandler')
-
-    @patch('cadasta.workertoolbox.conf.register_signal')
-    def test_setup_opbeat_task_signal(self, register_signal):
-        """ Ensure opbeat task handler calls opbeat signal setup function """
-        client = Client()
-        Config.setup_opbeat_task_signal(client)
-        register_signal.assert_called_once_with(client)
+        self.assertFalse(register_signal.called)
+        self.assertFalse(logger_signal.called)
