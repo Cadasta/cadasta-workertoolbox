@@ -91,11 +91,9 @@ class Config:
         if self.set('SETUP_FILE_LOGGING', False):
             self.setup_file_logging()
 
-        sentry_env_vars = [env.get('SENTRY_DSN')]
-        if self.set('SETUP_SENTRY_LOGGING', all(sentry_env_vars)):
-            assert all(env.get('SENTRY_DSN')), (
-                'Not all required env variables for Opbeat logging are set'
-            )
+        if self.set('SETUP_SENTRY_LOGGING', bool(env.get('SENTRY_DSN'))):
+            assert env.get('SENTRY_DSN'), (
+                'Required env variables for Sentry logging are not set')
             self.setup_sentry_logging()
 
         # Configure Result Backend
