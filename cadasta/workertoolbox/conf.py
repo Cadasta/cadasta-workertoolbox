@@ -93,7 +93,7 @@ class Config:
 
         if self.set('SETUP_SENTRY_LOGGING', bool(env.get('SENTRY_DSN'))):
             assert env.get('SENTRY_DSN'), (
-                'Required env variables for Sentry logging are not set')
+                'Required env variable for Sentry logging is not set')
             self.setup_sentry_logging()
 
         # Configure Result Backend
