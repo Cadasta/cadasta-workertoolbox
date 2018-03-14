@@ -1,4 +1,4 @@
-__version__ = '0.4.0'
+__version__ = '0.5.0'
 __license__ = 'GNU Affero General Public License v3.0'
 __description__ = 'Cadasta Worker Toolbox'
 __author__ = 'Anthony Lukach'
