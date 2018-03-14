@@ -5,9 +5,8 @@ import logging
 import logging.config
 
 from kombu import Exchange, Queue
-from opbeat import Client
-from opbeat.contrib.celery import register_signal
-from opbeat.handlers.logging import OpbeatHandler
+from raven import Client
+from raven.contrib.celery import register_signal, register_logger_signal
 
 # Ensure signals are imported before app starts
 from .signals import *  # NOQA
@@ -92,15 +91,10 @@ class Config:
         if self.set('SETUP_FILE_LOGGING', False):
             self.setup_file_logging()
 
-        opbeat_env_vars = [
-            env.get('OPBEAT_ORGANIZATION_ID'), env.get('OPBEAT_APP_ID'),
-            env.get('OPBEAT_SECRET_TOKEN'),
-        ]
-        if self.set('SETUP_OPBEAT_LOGGING', all(opbeat_env_vars)):
-            assert all(opbeat_env_vars), (
-                'Not all required env variables for Opbeat logging are set'
-            )
-            self.setup_opbeat_logging()
+        if self.set('SETUP_SENTRY_LOGGING', bool(env.get('SENTRY_DSN'))):
+            assert env.get('SENTRY_DSN'), (
+                'Required env variable for Sentry logging is not set')
+            self.setup_sentry_logging()
 
         # Configure Result Backend
         self.set('RESULT_DB_USER', 'worker')
@@ -185,28 +179,10 @@ class Config:
         self.set('worker_hijack_root_logger', False)
         logging.config.dictConfig(config)
 
-    def setup_opbeat_logging(self, opbeat_client=None):
-        self._opbeat_client = opbeat_client or Client()
-        self.setup_opbeat_log_handler(self._opbeat_client)
-        self.setup_opbeat_task_signal(self._opbeat_client)
-
-    @staticmethod
-    def setup_opbeat_log_handler(client, logger='', level=logging.ERROR):
-        """
-        Add OpBeat as log handler. Defaults to attaching to root logger
-        and handling logs of level ERROR and above.
-        """
-        logger = logging.getLogger(logger)
-        handler = OpbeatHandler(client)
-        handler.setLevel(level)
-        logger.addHandler(handler)
-
-    @staticmethod
-    def setup_opbeat_task_signal(client):
-        """
-        Setup OpBeat to handle Celery task failures.
-        """
-        register_signal(client)
+    def setup_sentry_logging(self, sentry_client=None, level=logging.ERROR):
+        self._sentry_client = sentry_client or Client(env['SENTRY_DSN'])
+        register_logger_signal(self._sentry_client, loglevel=level)
+        register_signal(self._sentry_client)
 
     @property
     def _default_exchange_obj(self):

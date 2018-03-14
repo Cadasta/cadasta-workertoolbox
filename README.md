@@ -94,12 +94,11 @@ Controls whether a default logging configuration should be applied to the applic
 
 _Note: This may be useful for debugging, however in production it is recommended to simply log to stdout (as is the default setup of Celery)_
 
-##### `SETUP_OPBEAT_LOGGING`
+##### `SETUP_SENTRY_LOGGING`
 Defaults to `True` if all required environment variables are set, otherwise `False`.
-Controls whether [Opbeat](https://opbeat.com/) logging handlers should be setup application. The following environment variables are required for Opbeat logging to be setup automatically: `OPBEAT_ORGANIZATION_ID`, `OPBEAT_APP_ID`, `OPBEAT_SECRET_TOKEN`. If all conditions are met, the following will be setup:
+Controls whether [Sentry](https://sentry.io/welcome/) logging handlers should be setup. The `SENTRY_DSN` environment variable is required for Sentry logging to be setup automatically. If this condition is met, the following will be setup:
 
-* add an [OpBeat](https://opbeat.com/) file handle for `ERROR` level logs
-* add an [OpBeat](https://opbeat.com/) [task_failure signal](http://docs.celeryproject.org/en/latest/userguide/signals.html#task-failure) handler to log all faild tasks
+* add a [Sentry signal handler](https://docs.sentry.io/clients/python/integrations/celery/) to log all failed tasks
 
 ##### `QUEUE_PREFIX`
 Used to populate the `queue_name_prefix` value of the connections `broker_transport_options`. Defaults to `'dev'`.

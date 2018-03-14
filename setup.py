@@ -19,8 +19,8 @@ REQUIREMENTS = [
     'psycopg2>=2.7.1',
     'SQLAlchemy>=1.2,<1.3',
     'mock>=2.0.0',
-    'opbeat>=3.5.2',
     'pycurl>=7.43.0,<=7.44',
+    'raven>=6.6.0'
 ]
 ###
 
