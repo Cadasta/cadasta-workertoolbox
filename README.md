@@ -100,6 +100,13 @@ Controls whether [Sentry](https://sentry.io/welcome/) logging handlers should be
 
 * add a [Sentry signal handler](https://docs.sentry.io/clients/python/integrations/celery/) to log all failed tasks
 
+The following arguments are passed to the Sentry client:
+
+* `SENTRY_DSN`
+* `SENTRY_NAME`
+* `SENTRY_ENVIRONMENT`
+* `SENTRY_RELEASE`
+
 ##### `QUEUE_PREFIX`
 Used to populate the `queue_name_prefix` value of the connections `broker_transport_options`. Defaults to `'dev'`.
 
