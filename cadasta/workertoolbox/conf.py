@@ -180,7 +180,15 @@ class Config:
         logging.config.dictConfig(config)
 
     def setup_sentry_logging(self, sentry_client=None, level=logging.ERROR):
-        self._sentry_client = sentry_client or Client(env['SENTRY_DSN'])
+        self._sentry_client = (
+            sentry_client or
+            Client(**{k: v for k, v in {
+                'dsn': env['SENTRY_DSN'],
+                'name': env.get('SENTRY_NAME'),
+                'environment': env.get('SENTRY_ENVIRONMENT'),
+                'release': env.get('SENTRY_RELEASE'),
+            }.items() if v})
+        )
         register_logger_signal(self._sentry_client, loglevel=level)
         register_signal(self._sentry_client)
 

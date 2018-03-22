@@ -2,8 +2,6 @@ import logging
 import unittest
 from mock import patch
 
-from raven import Client
-
 from cadasta.workertoolbox.conf import Config
 
 
@@ -139,14 +137,24 @@ class TestConfigClass(unittest.TestCase):
         Config(SETUP_FILE_LOGGING=False).setup_file_logging(my_logging_config)
         logging.config.dictConfig.assert_called_once_with(my_logging_config)
 
-    @patch('cadasta.workertoolbox.conf.env', {'SENTRY_DSN': 'https://example.com'})
+    @patch('cadasta.workertoolbox.conf.env', {
+        'SENTRY_DSN': 'https://example.com',
+        'SENTRY_NAME': 'foo',
+        'SENTRY_ENVIRONMENT': 'bar',
+        'SENTRY_RELEASE': '987',
+    })
     @patch('cadasta.workertoolbox.conf.Client')
     @patch('cadasta.workertoolbox.conf.register_logger_signal')
     @patch('cadasta.workertoolbox.conf.register_signal')
     def test_setup_sentry_tools(self, register_signal, logger_signal, Client):
         """ Ensure sentry logging is called if env variable is set """
         Config()
-        Client.assert_called_once_with('https://example.com')
+        Client.assert_called_once_with(
+            dsn='https://example.com',
+            name='foo',
+            environment='bar',
+            release='987',
+        )
         logger_signal.assert_called_once_with(Client.return_value, loglevel=logging.ERROR)
         register_signal.assert_called_once_with(Client.return_value)
 
