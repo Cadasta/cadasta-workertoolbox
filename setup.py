@@ -13,7 +13,7 @@ CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
 ]
 REQUIREMENTS = [
-    'boto3>=1.6,<1.7',
+    'boto3>=1.7,<1.8',
     'celery>=4.1.0,<=4.2',
     'kombu>=4.1.0,<=4.2',
     'psycopg2>=2.7.1',
