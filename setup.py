@@ -17,7 +17,7 @@ REQUIREMENTS = [
     'celery>=4.2,<4.3',
     'kombu>=4.4,<4.5',
     'psycopg2>=2.7.1',
-    'SQLAlchemy>=1.2,<1.3',
+    'SQLAlchemy>=1.3,<1.4',
     'mock>=2.0.0',
     'pycurl>=7.43.0,<=7.44',
     'raven>=6.6.0'
