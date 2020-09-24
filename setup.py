@@ -14,7 +14,7 @@ CLASSIFIERS = [
 ]
 REQUIREMENTS = [
     'boto3>=1.15,<1.16',
-    'celery>=4.4,<4.5',
+    'celery>=5.0,<5.1',
     'kombu>=5.0,<5.1',
     'psycopg2>=2.7.1',
     'SQLAlchemy>=1.3,<1.4',
